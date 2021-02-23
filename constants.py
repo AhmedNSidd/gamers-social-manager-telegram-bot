@@ -7,15 +7,15 @@ quips = [
     "To be fair, you do have to have a very high IQ to meditate.",
     "Imagine making mindfulness as your entire personality.",
     "Imagine not making mindfulness as your entire personality",
-
 ]
 
 help_message = """Here are the list of commands available to you:
 
 - /help -- The bot will send this message that you're reading right now.
-- /quip -- The bot will hit you up with a mighty fine quip or just an okay one.
-- /notify -- The bot will notify the gamers of the night asking if they want to play tonight.
+- /notify -- The bot will send the preset message that can be changed through /setnotify.
+- /setnotify [message] - The bot will take your message and store it as the new preset message.
 - /status -- The bot will fetch the Xbox Live status of chad gamers and see if they're online.
+- /quip -- The bot will hit you up with a mighty fine quip or just an okay one.
 """
 
 birth_date = (datetime.date.today() - datetime.date(2021, 2, 8)).days

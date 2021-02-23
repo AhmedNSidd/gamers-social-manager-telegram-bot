@@ -11,16 +11,18 @@ telegram group.
 
 ## Help
 
-A user can run /help to get a list of commands they can run.
+A user can run `/help` to get a list of commands they can run.
 
 ## Quip
 
-A user can run /quip to get a quip.
+A user can run `/quip` to get a quip.
 
 ## Notify for Games
 
-A user can run /notify to notify a group of members if they want to play games tonight.
+
+A user can run `/notify` to send the preset notify message.
+This notify message can be set through `/setnotify [add message here]`
 
 ## Status of Gamers
 
-A user can run /status to see the online status of gamer members and when they were last online.
+A user can run `/status` to see the online status of gamer members and when they were last online.
