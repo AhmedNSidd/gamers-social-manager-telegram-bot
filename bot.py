@@ -60,8 +60,7 @@ def status(update, context):
                 online_statuses += "{} -- Status: {} | Last seen online: {}".format(friend, resp["state"], last_seen)
         else:
             online_statuses += "{} -- Status: {}".format(friend, resp["state"])
-    
-
+    update.message.reply_text(online_statuses)
 
 # def echo(update, context):
 #     """Echo the user message."""
@@ -79,7 +78,8 @@ def main():
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
     TOKEN = os.environ.get("CHADDICTS_TG_BOT_TOKEN")
-    updater = Updater(TOKEN, use_context=True)
+    updater = Updater(
+        TOKEN, use_context=True)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -96,16 +96,18 @@ def main():
     # log all errors
     dp.add_error_handler(error)
 
-    updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
-    updater.set_webhook("https://chaddicts-tg-bot.herokuapp.com/" + TOKEN)
-
     # Start the Bot
-    updater.start_polling()
+    updater.start_webhook(listen="0.0.0.0",
+                          port=PORT,
+                          url_path=TOKEN)
+    # updater.bot.set_webhook(url=settings.WEBHOOK_URL)
+    updater.bot.set_webhook("https://chaddicts-tg-bot.herokuapp.com/" + TOKEN)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
+
 
 
 if __name__ == '__main__':
