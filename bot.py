@@ -67,18 +67,19 @@ def status(update, context):
             update.message.reply_text("Something went wrong with the API @ChakraAligningChadLad")
         resp = json.loads(resp.text)
         if resp["state"] == "Offline":
+            online_statuses += f"{constants.OFFLINE_EMOJI} {friend}: {resp['state']}\nLast seen: "
             if resp.get("cloaked"):
-                online_statuses += "{}: {}\nLast seen: Unknown\n\n".format(friend, resp["state"])
+                online_statuses += "Unknown\n\n"
             else:
                 last_seen = humanize.naturaltime(datetime.datetime.fromisoformat(resp["lastSeen"]["timestamp"][:-5]) - datetime.datetime.utcnow())
                 last_seen = last_seen.replace("from now", "ago")
-                online_statuses += "{}: {}\nLast seen: {}\n\n".format(friend, resp["state"], last_seen)
+                online_statuses += f"{last_seen}\n\n"
         else:
+            online_statuses += f"{constants.ONLINE_EMOJI} {friend}: {resp['state']}\nPlaying: "
             if resp.get("cloaked"):
-                online_statuses += "{}: {}\n\n".format(friend, resp["state"])
+                online_statuses += "Unknown\n\n"
             else:
-                online_statuses += "{}: {}\nPlaying: {}\n\n".format(friend, resp["state"], resp["devices"][0]["titles"][0]["name"])
-    online_statuses.strip()
+                online_statuses += f"{resp['devices'][0]['titles'][0]['name']}\n\n"
     update.message.reply_text(online_statuses)
 
 # def echo(update, context):
