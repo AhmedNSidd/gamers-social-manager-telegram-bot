@@ -13,7 +13,7 @@ bot.
 
 import os
 from handlers import basic, notify, status
-from production import PRODUCTION_READY
+from general.production import PRODUCTION_READY
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 
