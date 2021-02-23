@@ -45,6 +45,18 @@ def quip(update, context):
     """Sends a quip everytime the command /quip is issued."""
     update.message.reply_text(random.choice(constants.quips))
 
+def set_notify(update, context):
+    f = open("notify.txt", "w")
+    f.write(" ".join(context.args))
+    f.close()
+    update.message.reply_text("Done! A new notify message has been set.")
+    
+
+def notify(update, context):
+    f = open("notify.txt", "r")
+    update.message.reply_text(f.read())
+    f.close()
+
 def status(update, context):
     online_statuses = ""
     for friend in constants.FRIENDS_XUID:
@@ -88,6 +100,8 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help_message))
     dp.add_handler(CommandHandler("quip", quip))
+    dp.add_handler(CommandHandler("notify", notify))
+    dp.add_handler(CommandHandler("set_notify", set_notify))
     dp.add_handler(CommandHandler("status", status))
 
     # on noncommand i.e message - echo the message on Telegram
