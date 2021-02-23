@@ -1,12 +1,16 @@
 import datetime 
 
 quips = [
-    "As a bot, my chakras are always aligned.",
+    "How bout you align your chakras before coming at me with that poison",
     "You realize Steve Jobs is spying on you right? That every little camera in that phone is a hole for Jobs to peep your peep while you sleep?",
     "What are you doing step bro...",
     "To be fair, you do have to have a very high IQ to meditate.",
-    "Imagine making mindfulness as your entire personality.",
-    "Imagine not making mindfulness as your entire personality",
+    "Imagine making meditation your entire personality.",
+    "Imagine not making meditation your entire personality",
+    "The only thing falling faster than the GME stock is Ahmed's grades.",
+    "Sorry, I don't watch tiktok. I'm not a virgin.",
+    "IT'S A FUCKING JOKE MAN! HAHAHA",
+    "ASS!",
 ]
 
 help_message = """Here are the list of commands available to you:
