@@ -67,7 +67,7 @@ def status(update, context):
             update.message.reply_text("Something went wrong with the API @ChakraAligningChadLad")
         resp = json.loads(resp.text)
         if resp["state"] == "Offline":
-            if resp.get("cloacked"):
+            if resp.get("cloaked"):
                 online_statuses += "{} -- Status: {} | Last seen online: Unknown".format(friend, resp["state"])
             else:
                 last_seen = humanize.naturaltime(datetime.datetime.fromisoformat(resp["lastSeen"]["timestamp"][:-5]) - datetime.datetime.utcnow())
