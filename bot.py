@@ -61,14 +61,14 @@ def status(update, context):
     online_statuses = ""
     for friend in constants.FRIENDS_XUID:
         resp = requests.get("https://xapi.us/v2/{}/presence".format(
-            constants.FRIENDS_XUID[friend]),
+            constants.FRIENDS_XUID["friend"]),
             headers={"X-AUTH":os.environ.get("XPAI_API_KEY")})
         resp = json.loads(resp.text)
         if resp["state"] == "Offline":
             if resp.get("cloacked"):
                 online_statuses += "{} -- Status: {} | Last seen online: Unknown".format(friend, resp["state"])
             else:
-                last_seen = humanize.naturaltime(datetime.datetime.fromisoformat(resp["lastSeen"]["timestamp"][:-5] + "Z") - datetime.datetime.now())
+                last_seen = humanize.naturaltime(datetime.datetime.fromisoformat(resp["lastSeen"]["timestamp"][:-5]) - datetime.datetime.utcnow())
                 online_statuses += "{} -- Status: {} | Last seen online: {}".format(friend, resp["state"], last_seen)
         else:
             online_statuses += "{} -- Status: {}".format(friend, resp["state"])
