@@ -68,12 +68,16 @@ def status(update, context):
         resp = json.loads(resp.text)
         if resp["state"] == "Offline":
             if resp.get("cloaked"):
-                online_statuses += "{} -- Status: {} | Last seen online: Unknown\n".format(friend, resp["state"])
+                online_statuses += "{} -- Status: {} | Last seen online: Unknown\n\n".format(friend, resp["state"])
             else:
                 last_seen = humanize.naturaltime(datetime.datetime.fromisoformat(resp["lastSeen"]["timestamp"][:-5]) - datetime.datetime.utcnow())
-                online_statuses += "{} -- Status: {} | Last seen online: {}\n".format(friend, resp["state"], last_seen)
+                online_statuses += "{} -- Status: {} | Last seen online: {}\n\n".format(friend, resp["state"], last_seen)
         else:
-            online_statuses += "{} -- Status: {}\n".format(friend, resp["state"])
+            if resp.get("cloaked"):
+                online_statuses += "{} -- Status: {}\n\n".format(friend, resp["state"])
+            else:
+                online_statuses += "{} -- Status: {} | Playing: {}\n\n".format(friend, resp["state"], resp["devices"][0]["titles"][0]["name"])
+    online_statuses.strip()
     update.message.reply_text(online_statuses)
 
 # def echo(update, context):
