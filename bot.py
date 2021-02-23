@@ -61,7 +61,7 @@ def status(update, context):
     online_statuses = ""
     for friend in constants.FRIENDS_XUID:
         resp = requests.get("https://xapi.us/v2/{}/presence".format(
-            constants.FRIENDS_XUID["friend"]),
+            constants.FRIENDS_XUID[friend]),
             headers={"X-AUTH":os.environ.get("XPAI_API_KEY")})
         resp = json.loads(resp.text)
         if resp["state"] == "Offline":
