@@ -14,8 +14,13 @@ bot.
 import logging
 import os
 import random
+import humanize
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+import constants
+import requests
+import datetime
+import json
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -23,9 +28,6 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-quips = [
-    "As a bot, my chakras are always aligned.",
-]
 
 PORT = int(os.environ.get('PORT', '8443'))
 
@@ -35,18 +37,35 @@ def start(update, context):
     """Send a message when the command /start is issued."""
     update.message.reply_text("*Drops down from a scaffolding* Hello there...")
 
-
-def help(update, context):
+def help_message(update, context):
     """Send a message when the command /help is issued."""
-    update.message.reply_text('Help!')
+    update.message.reply_text(constants.help_message)
 
 def quip(update, context):
     """Sends a quip everytime the command /quip is issued."""
+    update.message.reply_text(random.choice(constants.quips))
+
+def status(update, context):
+    online_statuses = ""
+    for friend in constants.FRIENDS_XUID:
+        resp = requests.get("https://xapi.us/v2/{}/presence".format(
+            constants.FRIENDS_XUID[friend]),
+            headers={"X-AUTH":os.environ.get("XPAI_API_KEY")})
+        resp = json.loads(resp.text)
+        if resp["state"] == "Offline":
+            if resp.get("cloacked"):
+                online_statuses += "{} -- Status: {} | Last seen online: Unknown".format(friend, resp["state"])
+            else:
+                last_seen = humanize.naturaltime(datetime.datetime.fromisoformat(resp["lastSeen"]["timestamp"][:-5] + "Z") - datetime.datetime.now())
+                online_statuses += "{} -- Status: {} | Last seen online: {}".format(friend, resp["state"], last_seen)
+        else:
+            online_statuses += "{} -- Status: {}".format(friend, resp["state"])
+    
 
 
-def echo(update, context):
-    """Echo the user message."""
-    update.message.reply_text(update.message.text)
+# def echo(update, context):
+#     """Echo the user message."""
+#     update.message.reply_text(update.message.text)
 
 
 def error(update, context):
@@ -67,10 +86,12 @@ def main():
 
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help))
+    dp.add_handler(CommandHandler("help", help_message))
+    dp.add_handler(CommandHandler("quip", quip))
+    dp.add_handler(CommandHandler("status", status))
 
     # on noncommand i.e message - echo the message on Telegram
-    dp.add_handler(MessageHandler(Filters.text, echo))
+    # dp.add_handler(MessageHandler(Filters.text, echo))
 
     # log all errors
     dp.add_error_handler(error)
