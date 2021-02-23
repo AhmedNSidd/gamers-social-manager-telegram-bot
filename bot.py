@@ -63,6 +63,8 @@ def status(update, context):
         resp = requests.get("https://xapi.us/v2/{}/presence".format(
             constants.FRIENDS_XUID[friend]),
             headers={"X-AUTH":os.environ.get("XPAI_API_KEY")})
+        if resp.status_code != 200:
+            update.message.reply_text("Something went wrong with the API @ChakraAligningChadLad")
         resp = json.loads(resp.text)
         if resp["state"] == "Offline":
             if resp.get("cloacked"):
