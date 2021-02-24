@@ -29,7 +29,7 @@ Notify Commands | Send a preset message while tagging preset users
 /notify -- The bot will send the preset message while tagging the preset users.
 
 
-Status Commands | Get status of Xbox Live people.
+Status Commands | Get status of players on Xbox Live.
 /add_status_user [nickname,xuid] -- The bot will add the users in the list of people you want the status for.
 /del_status_user [nickname] -- The bot will delete the users from the list of people you want the status for.
 /list_status_user -- The bot will list all the users you'll get the status for when you run /status

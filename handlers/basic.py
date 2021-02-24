@@ -26,8 +26,6 @@ def quip(update, context):
 #     """Echo the user message."""
 #     update.message.reply_text(update.message.text)
 
-
 def error(update, context):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
-

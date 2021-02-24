@@ -5,6 +5,7 @@ import humanize
 import os
 from general import values
 from general.values import STATUS_DB
+from external_handlers.xbox_api import XboxApi
 
 
 def add_status_user(update, context):
@@ -67,30 +68,17 @@ def list_status_users(update, context):
 
 
 def status(update, context):
-    online_statuses = ""
+    players = []
     group_id = str(update.effective_chat.id)
     with open(STATUS_DB, "r") as f:
         status_content = json.load(f)
         if status_content.get(group_id) and len(status_content[group_id]) != 0:
-            for friend in status_content[group_id]:
-                resp = requests.get("https://xapi.us/v2/{}/presence".format(
-                    status_content[group_id][friend]),
-                    headers={"X-AUTH":os.environ.get("XPAI_API_KEY")})
-                if resp.status_code != 200:
+            for name in status_content[group_id]:
+                try:
+                    user = XboxApi.get_player(status_content[group_id][name], name)
+                    players.append(str(user))
+                except requests.HTTPError:
                     update.message.reply_text("Something went wrong with the API.")
-                resp = json.loads(resp.text)
-                if resp["state"] == "Offline":
-                    online_statuses += f"{values.OFFLINE_EMOJI} {friend}: {resp['state']}\nLast seen: "
-                    if resp.get("cloaked"):
-                        online_statuses += "Unknown\n\n"
-                    else:
-                        last_seen = humanize.naturaltime(datetime.datetime.fromisoformat(resp["lastSeen"]["timestamp"][:-5]) - datetime.datetime.utcnow())
-                        last_seen = last_seen.replace("from now", "ago")
-                        online_statuses += f"{last_seen}\n\n"
-                else:
-                    online_statuses += f"{values.ONLINE_EMOJI} {friend}: {resp['state']}\nPlaying: "
-                    if resp.get("cloaked"):
-                        online_statuses += "Unknown\n\n"
-                    else:
-                        online_statuses += f"{resp['devices'][0]['titles'][0]['name']}\n\n"
-    update.message.reply_text(online_statuses)
+            players.sort()
+
+    update.message.reply_text("".join(players))
