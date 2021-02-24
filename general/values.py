@@ -12,6 +12,7 @@ quips = [
     "Sorry, I don't watch tiktok. I'm not a virgin.",
     "IT'S A FUCKING JOKE MAN! HAHAHA",
     "ASS!",
+    "Shut the fuck up you fucking pussy"
 ]
 
 help_message = """Here are the list of commands available to you:
