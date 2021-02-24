@@ -36,7 +36,7 @@ class XboxApi(object):
 
     @staticmethod
     def _parse_last_seen(resp):
-        last_seen = humanize.naturaltime(datetime.datetime.fromisoformat(resp["lastSeen"]["timestamp"][:-5]) - datetime.datetime.utcnow())
+        last_seen = humanize.naturaltime(datetime.datetime.fromisoformat(resp["lastSeen"]["timestamp"][:25]) - datetime.datetime.utcnow())
         last_seen = last_seen.replace("from now", "ago")
 
         return last_seen
