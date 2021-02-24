@@ -1,4 +1,5 @@
 import json
+from os.path import isfile
 from general.values import NOTIFY_DB
 
 
@@ -8,6 +9,10 @@ def set_notify_msg(update, context):
         return
     group_id = str(update.effective_chat.id)
     notify_content = None
+    if not isfile(NOTIFY_DB):
+        f = open(NOTIFY_DB, "w")
+        f.write(json.dumps({}))
+        f.close()
     with open(NOTIFY_DB, "r") as f:
         notify_content = json.load(f)
         new_notify_msg = " ".join(context.args)
@@ -30,6 +35,10 @@ def add_notify_user(update, context):
         return
     notify_content = None
     group_id = str(update.effective_chat.id)
+    if not isfile(NOTIFY_DB):
+        f = open(NOTIFY_DB, "w")
+        f.write(json.dumps({}))
+        f.close()
     with open(NOTIFY_DB, "r") as f:
         notify_content = json.load(f)
         if notify_content.get(group_id):
@@ -52,6 +61,10 @@ def del_notify_user(update, context):
         return
     notify_content = None
     group_id = str(update.effective_chat.id)
+    if not isfile(NOTIFY_DB):
+        f = open(NOTIFY_DB, "w")
+        f.write(json.dumps({}))
+        f.close()
     with open(NOTIFY_DB, "r") as f:
         notify_content = json.load(f)
         if notify_content.get(group_id):
@@ -72,6 +85,10 @@ def del_notify_user(update, context):
 def list_notify_users(update, context):
     listed_notify_users = "The users to notify are:"
     group_id = str(update.effective_chat.id)
+    if not isfile(NOTIFY_DB):
+        f = open(NOTIFY_DB, "w")
+        f.write(json.dumps({}))
+        f.close()
     with open(NOTIFY_DB, "r") as f:
         notify_content = json.load(f)
         if notify_content.get(group_id) and notify_content[group_id]["tagged"]:
@@ -86,6 +103,10 @@ def list_notify_users(update, context):
 def list_notify_msg(update, context):
     listed_notify_msg = "The message to notify is:"
     group_id = str(update.effective_chat.id)
+    if not isfile(NOTIFY_DB):
+        f = open(NOTIFY_DB, "w")
+        f.write(json.dumps({}))
+        f.close()
     with open(NOTIFY_DB, "r") as f:
         notify_content = json.load(f)
         if notify_content.get(group_id) and notify_content[group_id]["message"] != "":
@@ -98,6 +119,10 @@ def list_notify_msg(update, context):
 def notify(update, context):
     notify_users_and_msg = ""
     group_id = str(update.effective_chat.id)
+    if not isfile(NOTIFY_DB):
+        f = open(NOTIFY_DB, "w")
+        f.write(json.dumps({}))
+        f.close()
     with open(NOTIFY_DB, "r") as f:
         notify_content = json.load(f)
         if notify_content.get(group_id):

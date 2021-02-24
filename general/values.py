@@ -42,5 +42,5 @@ ONLINE_EMOJI = u"\U0001F7E2"
 OFFLINE_EMOJI = u"\U0001F534"
 
 PROJECT_PATH = os.getcwd()
-NOTIFY_DB = os.path.join(PROJECT_PATH, "db/notify.json")
-STATUS_DB = os.path.join(PROJECT_PATH, "db/status.json")
+NOTIFY_DB = os.path.join(PROJECT_PATH, "notify.json")
+STATUS_DB = os.path.join(PROJECT_PATH, "status.json")

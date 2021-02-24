@@ -14,6 +14,10 @@ def add_status_user(update, context):
         return
     status_content = None
     group_id = str(update.effective_chat.id)
+    if not os.path.isfile(STATUS_DB):
+        f = open(STATUS_DB, "w")
+        f.write(json.dumps({}))
+        f.close()
     with open(STATUS_DB, "r") as f:
         status_content = json.load(f)
         users = set([])
@@ -37,6 +41,10 @@ def del_status_user(update, context):
         return
     status_content = None
     group_id = str(update.effective_chat.id)
+    if not os.path.isfile(STATUS_DB):
+        f = open(STATUS_DB, "w")
+        f.write(json.dumps({}))
+        f.close()
     with open(STATUS_DB, "r") as f:
         status_content = json.load(f)
         users = []
@@ -56,6 +64,10 @@ def del_status_user(update, context):
 def list_status_users(update, context):
     listed_status_users = "The users in the status list are:"
     group_id = str(update.effective_chat.id)
+    if not os.path.isfile(STATUS_DB):
+        f = open(STATUS_DB, "w")
+        f.write(json.dumps({}))
+        f.close()
     with open(STATUS_DB, "r") as f:
         status_content = json.load(f)
         if status_content.get(group_id) and len(status_content[group_id]) != 0:
@@ -70,6 +82,10 @@ def list_status_users(update, context):
 def status(update, context):
     players = []
     group_id = str(update.effective_chat.id)
+    if not os.path.isfile(STATUS_DB):
+        f = open(STATUS_DB, "w")
+        f.write(json.dumps({}))
+        f.close()
     with open(STATUS_DB, "r") as f:
         status_content = json.load(f)
         if status_content.get(group_id) and len(status_content[group_id]) != 0:
