@@ -22,6 +22,11 @@ def quip(update, context):
     """Sends a quip everytime the command /quip is issued."""
     update.message.reply_text(random.choice(values.quips))
 
+def get_group_id(update, context):
+    """Sends a quip everytime the command /quip is issued."""
+    update.message.reply_text(str(update.effective_chat.id))
+
+
 # def echo(update, context):
 #     """Echo the user message."""
 #     update.message.reply_text(update.message.text)

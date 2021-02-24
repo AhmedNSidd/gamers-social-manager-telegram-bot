@@ -34,6 +34,7 @@ def main():
     dp.add_handler(CommandHandler("start", basic.start))
     dp.add_handler(CommandHandler("help", basic.help_message))
     dp.add_handler(CommandHandler("quip", basic.quip))
+    dp.add_handler(CommandHandler("get_group_id", basic.get_group_id))
     dp.add_handler(CommandHandler("add_notify_user", notify.add_notify_user))
     dp.add_handler(CommandHandler("del_notify_user", notify.del_notify_user))
     dp.add_handler(CommandHandler("set_notify_msg", notify.set_notify_msg))
