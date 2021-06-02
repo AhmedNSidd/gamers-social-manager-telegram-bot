@@ -1,5 +1,5 @@
 import datetime
-import os
+
 
 quips = [
     "How bout you align your chakras before coming at me with that poison",
@@ -12,7 +12,9 @@ quips = [
     "Sorry, I don't watch tiktok. I'm not a virgin.",
     "IT'S A FUCKING JOKE MAN! HAHAHA",
     "ASS!",
-    "Shut the fuck up you fucking pussy"
+    "Shut the fuck up you fucking pussy",
+    "Can you get off Playstation's dick already?",
+    "Land on me, land on three"
 ]
 
 help_message = """Here are the list of commands available to you:
@@ -41,7 +43,3 @@ birth_date = (datetime.date.today() - datetime.date(2021, 2, 8)).days
 
 ONLINE_EMOJI = u"\U0001F7E2"
 OFFLINE_EMOJI = u"\U0001F534"
-
-PROJECT_PATH = os.getcwd()
-NOTIFY_DB = os.path.join(PROJECT_PATH, "db/notify.json")
-STATUS_DB = os.path.join(PROJECT_PATH, "db/status.json")
