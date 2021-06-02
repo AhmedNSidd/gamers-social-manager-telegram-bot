@@ -22,6 +22,8 @@ help_message = """Here are the list of commands available to you:
 General Commands
 /help -- The bot will send this message that you're reading right now.
 /quip -- The bot will hit you up with a mighty fine quip or just an okay one.
+/f -- The bot will reply with a gif to help pay respect.
+/mf -- The bot will reply with a sad... sad.. voice note.
 
 Notify Commands | Send a preset message while tagging preset users
 /add_notify_user [username without @] -- The bot will add the username to the list of people you want to notify
