@@ -21,7 +21,7 @@ from telegram.ext.filters import Filters
 from db.instantiate_tables import instantiate_tables
 
 
-PORT = int(os.environ.get('PORT', '8443'))
+PORT = os.environ.get('PORT', 8443)
 
 def main():
     """Start the bot."""
