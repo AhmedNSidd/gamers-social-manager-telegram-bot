@@ -1,5 +1,6 @@
 import random
 import logging
+import os
 from general import values
 
 # Enable logging
@@ -21,6 +22,14 @@ def help_message(update, context):
 def quip(update, context):
     """Sends a quip everytime the command /quip is issued."""
     update.message.reply_text(random.choice(values.quips))
+
+def f(update, context):
+    """Replies with a gif to pay respect."""
+    update.message.reply_animation("https://thumbs.gfycat.com/SkeletalDependableAndeancat-size_restricted.gif")
+
+def mf(update, context):
+    """Replies with a sad.. sad voice note."""
+    update.message.reply_audio("https://www.myinstants.com/media/sounds/mission-failed-well-get-em-next-time.mp3")
 
 def get_group_id(update, context):
     """Replies with a group's chat ID"""
