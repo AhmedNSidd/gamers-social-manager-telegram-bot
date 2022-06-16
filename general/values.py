@@ -14,7 +14,9 @@ quips = [
     "ASS!",
     "Shut the fuck up you fucking pussy",
     "Can you get off Playstation's dick already?",
-    "Land on me, land on three"
+    "Land on me, land on three",
+    "We should give Alex another chance, I'm sure he's changed. He means well now.",
+    "The Great Way is not difficult for those who have no preferences. When love and hate are both absent, everything becomes clear and undisguised. Make the smallest distinction, however, and heaven and earth are set infinitely apart. If you wish to see the truth, then hold no opinions for, or against, anything."
 ]
 
 help_message = """Here are the list of commands available to you:
@@ -45,3 +47,8 @@ birth_date = (datetime.date.today() - datetime.date(2021, 2, 8)).days
 
 ONLINE_EMOJI = u"\U0001F7E2"
 OFFLINE_EMOJI = u"\U0001F534"
+
+ADMIN_LIST = [247340182]
+
+BOT_LINK = "https://t.me/chaddicts_bot"
+XBOX_AUTH_REDIRECT_URI = "https://chaddicts-tg-bot.herokuapp.com/auth/callback"
