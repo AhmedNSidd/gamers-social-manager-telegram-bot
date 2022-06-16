@@ -12,9 +12,13 @@ bot.
 """
 
 import os
-from handlers import basic, notify, status
+
+from handlers import basic, notify, status, credentials
+from handlers.credentials import TYPING_CLIENT_ID, TYPING_CLIENT_SECRET, TYPING_NPSSO
 from general.production import PRODUCTION_READY
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler
+from telegram.ext.filters import Filters
+from db.instantiate_tables import instantiate_tables
 
 
 PORT = int(os.environ.get('PORT', '8443'))
@@ -43,16 +47,44 @@ def main():
     dp.add_handler(CommandHandler("list_notify_users", notify.list_notify_users))
     dp.add_handler(CommandHandler("list_notify_msg", notify.list_notify_msg))
     dp.add_handler(CommandHandler("notify", notify.notify))
-    dp.add_handler(CommandHandler("add_status_user", status.add_status_user))
-    dp.add_handler(CommandHandler("del_status_user", status.del_status_user))
-    dp.add_handler(CommandHandler("list_status_user", status.list_status_users))
-    dp.add_handler(CommandHandler("status", status.status))
+    dp.add_handler(CommandHandler("add_xbox_status_user", status.add_xbox_status_user))
+    dp.add_handler(CommandHandler("del_xbox_status_user", status.del_xbox_status_user))
+    dp.add_handler(CommandHandler("list_xbox_status_user", status.list_xbox_status_users))
+    dp.add_handler(CommandHandler("xbox_status", status.xbox_status))
+    dp.add_handler(CommandHandler("add_playstation_status_user", status.add_playstation_status_user))
+    dp.add_handler(CommandHandler("del_playstation_status_user", status.del_playstation_status_user))
+    dp.add_handler(CommandHandler("list_playstation_status_user", status.list_playstation_status_users))
+    dp.add_handler(CommandHandler("playstation_status", status.playstation_status))
+    dp.add_handler(ConversationHandler(
+        entry_points=[CommandHandler("xbox_credentials_setup", credentials.xbox_credentials_setup)],
+        states={
+            TYPING_CLIENT_ID: [
+                MessageHandler(Filters.text & (~Filters.command), credentials.store_xbox_client_id)
+            ],
+            TYPING_CLIENT_SECRET: [
+                MessageHandler(Filters.text & (~Filters.command), credentials.store_xbox_client_secret)
+            ]
+        },
+        fallbacks=[MessageHandler(Filters.command, credentials.cancel)],
+    ))
+    dp.add_handler(ConversationHandler(
+        entry_points=[CommandHandler("playstation_credentials_setup", credentials.playstation_credentials_setup)],
+        states={
+            TYPING_NPSSO: [
+                MessageHandler(Filters.text & (~Filters.command), credentials.store_playstation_npsso)
+            ]
+        },
+        fallbacks=[MessageHandler(Filters.command, credentials.cancel)],
+    ))
 
     # on noncommand i.e message - echo the message on Telegram
     # dp.add_handler(MessageHandler(Filters.text, echo))
 
     # log all errors
     dp.add_error_handler(basic.error)
+
+    # Create all the necessary tables for the running of the bot.
+    instantiate_tables()
 
     # Start the Bot
     if PRODUCTION_READY:
