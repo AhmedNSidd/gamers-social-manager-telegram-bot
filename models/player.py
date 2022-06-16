@@ -2,12 +2,12 @@ import datetime
 import humanize
 from general import values
 
-class XboxUser(object):
+class Player(object):
     """
-    :param id: XUID of the user
-    :param is_online: Represents whether the user is currently online
+    :param id: ID of the player
+    :param is_online: Represents whether the player is currently online
     :param current_title: The current title the player is playing, can be None
-    :param last_seen: When the user was last online, can be None
+    :param last_seen: When the player was last online, can be None
     """
     def __init__(self, id, name, is_online, current_title, last_seen):
         self.id = id
