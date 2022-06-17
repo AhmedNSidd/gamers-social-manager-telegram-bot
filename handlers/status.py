@@ -41,6 +41,7 @@ def add_xbox_status_user(update, context):
 
     update.message.reply_text("Done! The new user(s) have been added.")
 
+
 def del_xbox_status_user(update, context):
     with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
         if not context.args:
@@ -69,6 +70,7 @@ def del_xbox_status_user(update, context):
 
         update.message.reply_text("Done! The new user(s) have been deleted.")
 
+
 def list_xbox_status_users(update, context):
     with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
         listed_status_users = "The users in the status list are:"
@@ -82,6 +84,7 @@ def list_xbox_status_users(update, context):
                 for x in range(len(curr_record[0])):
                     listed_status_users += f"\n- {curr_record[0][x]}, {curr_record[1][x]}"  
         update.message.reply_text(listed_status_users)
+
 
 def xbox_status(update, context):
     with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
@@ -117,6 +120,7 @@ def xbox_status(update, context):
                 players.sort()
                 update.message.reply_text("".join(players))
 
+
 def add_playstation_status_user(update, context):
     with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
         if not context.args:
@@ -150,7 +154,6 @@ def add_playstation_status_user(update, context):
         update.message.reply_text("Done! The new user(s) have been added.")
 
 
-
 def del_playstation_status_user(update, context):
     with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
         if not context.args:
@@ -179,6 +182,7 @@ def del_playstation_status_user(update, context):
 
         update.message.reply_text("Done! The new user(s) have been deleted.")
 
+
 def list_playstation_status_users(update, context):
     with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
         listed_status_users = "The users in the status list are:"
@@ -192,6 +196,7 @@ def list_playstation_status_users(update, context):
                 for x in range(len(curr_record[0])):
                     listed_status_users += f"\n- {curr_record[0][x]}, {curr_record[1][x]}"  
         update.message.reply_text(listed_status_users)
+
 
 def playstation_status(update, context):
     with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
