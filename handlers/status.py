@@ -86,7 +86,7 @@ def list_xbox_status_users(update, context):
         update.message.reply_text(listed_status_users)
 
 
-def xbox_status(update, context):
+async def xbox_status(update, context):
     with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
         players = []
         group_id = str(update.effective_chat.id)
@@ -112,7 +112,7 @@ def xbox_status(update, context):
                     "issued": credentials[9] 
                 })
 
-                players = client.get_players(
+                players = await client.get_players(
                     [str(curr_record[1][x]) for x in range(len(curr_record[0]))],
                     [curr_record[0][x] for x in range(len(curr_record[0]))]
                 )

@@ -29,7 +29,7 @@ General Commands
 /mf -- The bot will reply with a sad... sad.. voice note.
 
 Notify Commands - Send a preset message while tagging preset users
--------------------------------------------------------------------
+-----------------------------------------------------------------------
 /add_notify_user [username without @] -- The bot will add the username to the list of people you want to notify
 /del_notify_user [username without @] -- The bot will delete the username from the list of people you want to notify
 /list_notify_users -- The bot will list all the users currently set for being notified when you run /notify
@@ -39,7 +39,7 @@ Notify Commands - Send a preset message while tagging preset users
 
 
 Status Commands - Get status of players on Xbox Live and PSN.
--------------------------------------------------------------
+-----------------------------------------------------------------
 /add_xbox_status_user [nickname,xbox_id] -- The bot will add the users in the list of people you want the Xbox Live status for.
 /del_xbox_status_user [nickname] -- The bot will delete the users from the list of people you want the Xbox Live status for.
 /list_xbox_status_user -- The bot will list all the users you'll get the Xbox Live status for when you run /status

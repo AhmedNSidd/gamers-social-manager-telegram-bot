@@ -17,7 +17,7 @@ from xbox.webapi.authentication.models import OAuth2TokenResponse
 url = urlparse.urlparse(os.environ['DATABASE_URL'])
 
 class XboxApi(object):
-    def __init__(self, client_id, client_secret, tokens):
+    async def __init__(self, client_id, client_secret, tokens):
         self.client_id = client_id
         self.client_secret = client_secret
         self.tokens = tokens
@@ -59,7 +59,7 @@ class XboxApi(object):
 
             return player_list
 
-    async def _check_expiry(self):
+    def _check_expiry(self):
         if (values.XBOX_CLIENT_SECRET_EXPIRY_DATE - datetime.date.today()).days < 7:
             for admin_id in values.ADMIN_LIST:
                 requests.post(url=f"https://api.telegram.org/bot{values.TOKEN}/sendMessage",

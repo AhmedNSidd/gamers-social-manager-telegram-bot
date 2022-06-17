@@ -13,7 +13,7 @@ import webbrowser
 from aiohttp import ClientSession, web
 from xbox.webapi.authentication.manager import AuthenticationManager
 from xbox.webapi.authentication.models import OAuth2TokenResponse
-from xbox.webapi.scripts import REDIRECT_URI, TOKENS_FILE
+from xbox.webapi.scripts import REDIRECT_URI
 
 
 queue = asyncio.Queue(1)
@@ -29,7 +29,7 @@ async def auth_callback(request):
     asyncio.create_task(queue.put(request.query["code"]))
     return web.Response(
         headers={"content-type": "text/html"},
-        text="<script>window.close()</script>",
+        text="You can close this tab now.",
     )
 
 
@@ -71,9 +71,10 @@ async def async_main(client_id: str, client_secret: str, redirect_uri: str):
                     await auth_mgr.request_tokens(code)
                     tokens = auth_mgr.oauth.dict()
                     if existing_credentials:
-                        cursor.execute(f"DELETE FROM xbox_credential WHERE client_id={existing_credentials[1]}")
+                        cursor.execute(f"DELETE FROM xbox_credential WHERE client_id='{existing_credentials[1]}'")
                     cursor.execute(f"INSERT INTO xbox_credential (client_id, client_secret, token_type, expires_in, scope, access_token, refresh_token, user_id, issued) VALUES('{client_id}', '{client_secret}', '{tokens['token_type']}', {tokens['expires_in']}, '{tokens['scope']}', '{tokens['access_token']}', '{tokens['refresh_token']}', '{tokens['user_id']}', '{tokens['issued']}')")
 
+                print("Success! The Xbox API is now ready to be used.")
 
 def main():
     parser = argparse.ArgumentParser(description="Authenticate with XBL")
@@ -101,7 +102,7 @@ def main():
     site = web.TCPSite(runner, "localhost", 8080)
     loop.run_until_complete(site.start())
     loop.run_until_complete(
-        async_main(args.client_id, args.client_secret, REDIRECT_URI, TOKENS_FILE)
+        async_main(args.client_id, args.client_secret, REDIRECT_URI)
     )
 
 
