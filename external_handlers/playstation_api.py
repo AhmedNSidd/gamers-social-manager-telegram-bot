@@ -1,5 +1,8 @@
 import datetime
 import humanize
+import requests
+
+from general import values
 from models.player import Player
 from psnawp_api import psnawp
 
@@ -10,6 +13,7 @@ class PlaystationApi:
     def __init__(self, npsso) -> None:
         # REVIEW: Is client an appropriate name for this obj. variable?
         self.client = psnawp.PSNAWP(npsso)
+        self._check_expiry()
 
     def get_players(self, ids, names):
         player_list = []
@@ -23,6 +27,13 @@ class PlaystationApi:
             player_list.append(player)
 
         return player_list
+
+    def _check_expiry(self):
+        if self.client.authenticator.oauth_token_response['refresh_token_expires_in'] <= 604800:
+            for admin_id in values.ADMIN_LIST:
+                requests.post(url=f"https://api.telegram.org/bot{values.TOKEN}/sendMessage",
+                              data={"chat_id": admin_id,
+                              "text": "Warning: The Playstation npsso is expiring in less than 7 days. Please update it soon."})
 
     # REVIEW: I don't see why these shouldn't be static methods
     # but at the same time, I see no use case for these methods

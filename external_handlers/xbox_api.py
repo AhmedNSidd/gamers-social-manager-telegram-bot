@@ -1,13 +1,12 @@
 import datetime
 import humanize
-import json
 import os
 import psycopg2
 import requests
 import urllib.parse as urlparse
 
-
-from aiohttp import ClientSession, web
+from aiohttp import ClientSession
+from general import values
 from models.player import Player
 from xbox.webapi.api.client import XboxLiveClient
 from xbox.webapi.api.provider.presence import PresenceLevel
@@ -22,6 +21,7 @@ class XboxApi(object):
         self.client_id = client_id
         self.client_secret = client_secret
         self.tokens = tokens
+        self._check_expiry()
         
     async def get_players(self, ids, names):
         async with ClientSession() as session:
@@ -31,13 +31,13 @@ class XboxApi(object):
 
             try:
                 auth_mgr.oauth = OAuth2TokenResponse.parse_raw(self.tokens)
-            except FileNotFoundError:
-                print(f'Error: Tokens could not be parsed.')
+            except:
+                raise Exception('Error: Tokens could not be parsed.')
 
             try:
                 await auth_mgr.refresh_tokens()
             except:
-                print("Error: Could not refresh tokens.")
+                raise Exception("Error: Could not refresh tokens.")
 
             self.tokens = auth_mgr.oauth.dict()
             
@@ -47,7 +47,7 @@ class XboxApi(object):
 
             xbl_client = XboxLiveClient(auth_mgr)
 
-            resp = await xbl_client.presence.get_presence_batch(str_ids, presence_level=PresenceLevel.ALL)
+            resp = await xbl_client.presence.get_presence_batch(ids, presence_level=PresenceLevel.ALL)
             player_list = []
 
             for x in range(len(resp)):
@@ -58,6 +58,13 @@ class XboxApi(object):
                 player_list.append(player)
 
             return player_list
+
+    async def _check_expiry(self):
+        if (values.XBOX_CLIENT_SECRET_EXPIRY_DATE - datetime.date.today()).days < 7:
+            for admin_id in values.ADMIN_LIST:
+                requests.post(url=f"https://api.telegram.org/bot{values.TOKEN}/sendMessage",
+                              data={"chat_id": admin_id,
+                              "text": "Warning: The Xbox Secret Key is expiring in less than 7 days. Please update it soon."})
 
     @staticmethod
     def _parse_is_online(resp):
