@@ -46,7 +46,7 @@ def main():
     dp.add_handler(CommandHandler("add_xbox_status_user", status.add_xbox_status_user))
     dp.add_handler(CommandHandler("del_xbox_status_user", status.del_xbox_status_user))
     dp.add_handler(CommandHandler("list_xbox_status_user", status.list_xbox_status_users))
-    dp.add_handler(CommandHandler("xbox_status", status.xbox_status))
+    dp.add_handler(CommandHandler("xbox_status", status.xbox_status, run_async=True))
     dp.add_handler(CommandHandler("add_playstation_status_user", status.add_playstation_status_user))
     dp.add_handler(CommandHandler("del_playstation_status_user", status.del_playstation_status_user))
     dp.add_handler(CommandHandler("list_playstation_status_user", status.list_playstation_status_users))

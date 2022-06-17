@@ -21,7 +21,7 @@ class PlaystationApi:
             resp = self.client.user(account_id=ids[x]).get_presence()
             is_user_online = PlaystationApi._parse_is_online(resp)
             player = Player(ids[x], names[x], is_user_online,
-                PlaystationApi._parse_current_title(resp),
+                PlaystationApi._parse_current_title(resp) if is_user_online else None,
                 PlaystationApi._parse_last_seen(resp) if not is_user_online else None
             )
             player_list.append(player)
@@ -46,9 +46,10 @@ class PlaystationApi:
 
     @staticmethod
     def _parse_current_title(resp):
-        return (resp["gameTitleInfoList"]["titleName"]
-                if "gameTitleInfoList" in resp
-                else None)
+        if "gameTitleInfoList" in resp:
+            return resp["gameTitleInfoList"]["titleName"]
+        elif resp.get("primaryPlatformInfo"):
+            return f"{resp['primaryPlatformInfo'].get('platform', 'Unknown')} Main Menu"
 
     @staticmethod
     def _parse_last_seen(resp):

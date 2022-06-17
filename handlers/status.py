@@ -1,5 +1,6 @@
-import psycopg2
+import asyncio
 import os
+import psycopg2
 import urllib.parse as urlparse
 
 from general.utils import create_sql_array
@@ -86,7 +87,7 @@ def list_xbox_status_users(update, context):
         update.message.reply_text(listed_status_users)
 
 
-async def xbox_status(update, context):
+def xbox_status(update, context):
     with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
         players = []
         group_id = str(update.effective_chat.id)
@@ -112,10 +113,10 @@ async def xbox_status(update, context):
                     "issued": credentials[9] 
                 })
 
-                players = await client.get_players(
+                players = asyncio.run(client.get_players(
                     [str(curr_record[1][x]) for x in range(len(curr_record[0]))],
                     [curr_record[0][x] for x in range(len(curr_record[0]))]
-                )
+                ))
                 players = [str(player) for player in players]
                 players.sort()
                 update.message.reply_text("".join(players))

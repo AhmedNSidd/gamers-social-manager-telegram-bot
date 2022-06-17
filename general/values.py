@@ -59,7 +59,6 @@ OFFLINE_EMOJI = u"\U0001F534"
 ADMIN_LIST = [247340182]
 
 BOT_URL = "https://t.me/chaddicts_bot"
-XBOX_AUTH_REDIRECT_URI = "https://chaddicts-tg-bot.herokuapp.com/auth/callback"
 HEROKU_APP_URL = "https://chaddicts-tg-bot.herokuapp.com"
 TOKEN = os.environ.get("CHADDICTS_TG_BOT_TOKEN")
 XBOX_CLIENT_SECRET_EXPIRY_DATE = datetime.datetime.strptime(os.environ.get("XBOX_CLIENT_SECRET_EXPIRY_DATE", "Jun 16, 2024"), "%b %d, %Y").date()
