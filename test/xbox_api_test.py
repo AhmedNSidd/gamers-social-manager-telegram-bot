@@ -28,4 +28,4 @@ with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.passwor
         )
                 
         players.sort()
-        print(players)
+        print("".join(players))

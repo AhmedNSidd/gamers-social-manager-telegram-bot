@@ -40,14 +40,14 @@ Notify Commands - Send a preset message while tagging preset users
 
 Status Commands - Get status of players on Xbox Live and PSN.
 -----------------------------------------------------------------
-/add_xbox_status_user [nickname,xbox_id] -- The bot will add the users in the list of people you want the Xbox Live status for.
-/del_xbox_status_user [nickname] -- The bot will delete the users from the list of people you want the Xbox Live status for.
-/list_xbox_status_user -- The bot will list all the users you'll get the Xbox Live status for when you run /status
+/add_xbox_status gamertag1, gamertag2, ... -- The bot will add the users in the list of people you want the Xbox Live status for.
+/del_xbox_status gamertag1, gamertag2, ... -- The bot will delete the users from the list of people you want the Xbox Live status for.
+/list_xbox_status -- The bot will list all the users you'll get the Xbox Live status for when you run /xbox_status
 /xbox_status -- The bot will fetch the Xbox Live statuses of the set users and see if they're online.
 
-/add_playstation_status_user [nickname,playstation_id] -- The bot will add the users in the list of people you want the PSN status for.
-/del_playstation_status_user [nickname] -- The bot will delete the users from the list of people you want the PSN status for.
-/list_playstation__status_user -- The bot will list all the users you'll get the PSN status for when you run /playstation_status
+/add_playstation_status psn_online_id1, psn_online_id1, ... -- The bot will add the users in the list of people you want the PSN status for.
+/del_playstation_status psn_online_id1, psn_online_id1, ... -- The bot will delete the users from the list of people you want the PSN status for.
+/list_playstation__status -- The bot will list all the users you'll get the PSN status for when you run /playstation_status
 /playstation_status -- The bot will fetch the PSN statuses of the set users and see if they're online.
 """
 

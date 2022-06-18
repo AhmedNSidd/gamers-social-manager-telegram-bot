@@ -25,7 +25,7 @@ def validate_and_store_npsso(npsso: str):
                     cursor.execute(f"DELETE FROM playstation_credential WHERE id={existing_credentials[0]}")
             
                 cursor.execute(f"INSERT INTO playstation_credential (npsso) VALUES('{npsso}')")
-                print("The npsso code has been successfully stored.")
+                print("Success! The PSN API is now ready to be used.")
 
 
 def main():

@@ -15,12 +15,12 @@ class PlaystationApi:
         self.client = psnawp.PSNAWP(npsso)
         self._check_expiry()
 
-    def get_players(self, ids, names):
+    def get_players(self, online_ids):
         player_list = []
-        for x in range(len(ids)):
-            resp = self.client.user(account_id=ids[x]).get_presence()
+        for online_id in online_ids[::-1]:
+            resp = self.client.user(online_id=online_id).get_presence()
             is_user_online = PlaystationApi._parse_is_online(resp)
-            player = Player(ids[x], names[x], is_user_online,
+            player = Player(online_id, is_user_online,
                 PlaystationApi._parse_current_title(resp) if is_user_online else None,
                 PlaystationApi._parse_last_seen(resp) if not is_user_online else None
             )
@@ -47,7 +47,7 @@ class PlaystationApi:
     @staticmethod
     def _parse_current_title(resp):
         if "gameTitleInfoList" in resp:
-            return resp["gameTitleInfoList"]["titleName"]
+            return f"{resp['gameTitleInfoList'][0]['titleName']} ({resp['primaryPlatformInfo']['platform']})"
         elif resp.get("primaryPlatformInfo"):
             return f"{resp['primaryPlatformInfo'].get('platform', 'Unknown')} Main Menu"
 

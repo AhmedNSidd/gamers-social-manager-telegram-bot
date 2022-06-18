@@ -40,13 +40,13 @@ def main():
     dp.add_handler(CommandHandler("list_notify_users", notify.list_notify_users))
     dp.add_handler(CommandHandler("list_notify_msg", notify.list_notify_msg))
     dp.add_handler(CommandHandler("notify", notify.notify))
-    dp.add_handler(CommandHandler("add_xbox_status_user", status.add_xbox_status_user))
-    dp.add_handler(CommandHandler("del_xbox_status_user", status.del_xbox_status_user))
-    dp.add_handler(CommandHandler("list_xbox_status_user", status.list_xbox_status_users))
+    dp.add_handler(CommandHandler("add_xbox_status", status.add_xbox_status))
+    dp.add_handler(CommandHandler("del_xbox_status", status.del_xbox_status))
+    dp.add_handler(CommandHandler("list_xbox_status", status.list_xbox_status))
     dp.add_handler(CommandHandler("xbox_status", status.xbox_status, run_async=True))
-    dp.add_handler(CommandHandler("add_playstation_status_user", status.add_playstation_status_user))
-    dp.add_handler(CommandHandler("del_playstation_status_user", status.del_playstation_status_user))
-    dp.add_handler(CommandHandler("list_playstation_status_user", status.list_playstation_status_users))
+    dp.add_handler(CommandHandler("add_playstation_status", status.add_playstation_status))
+    dp.add_handler(CommandHandler("del_playstation_status", status.del_playstation_status))
+    dp.add_handler(CommandHandler("list_playstation_status", status.list_playstation_status))
     dp.add_handler(CommandHandler("playstation_status", status.playstation_status))
 
     # log all errors
@@ -56,7 +56,6 @@ def main():
     instantiate_tables()
 
     # Start the Bot
-    print(PORT)
     if PRODUCTION_READY:
         updater.start_webhook(listen="0.0.0.0",
                             port=PORT,

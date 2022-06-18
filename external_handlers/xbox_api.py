@@ -25,7 +25,7 @@ class XboxApi(object):
         self.tokens = tokens
         self._check_expiry()
         
-    async def get_players(self, ids, names):
+    async def get_players(self, gamertags):
         async with ClientSession() as session:
             auth_mgr = AuthenticationManager(
                 session, self.client_id, self.client_secret, REDIRECT_URI
@@ -44,7 +44,7 @@ class XboxApi(object):
                     cursor.execute(f"UPDATE xbox_credential SET token_type = '{self.tokens['token_type']}', expires_in = {self.tokens['expires_in']}, scope = '{self.tokens['scope']}', access_token = '{self.tokens['access_token']}', refresh_token = '{self.tokens['refresh_token']}', user_id = '{self.tokens['user_id']}', issued = '{self.tokens['issued']}' WHERE client_id = '{self.client_id}'")
 
             xbl_client = XboxLiveClient(auth_mgr)
-
+            ids = [(await xbl_client.profile.get_profile_by_gamertag(gamertag)).profile_users[0].id for gamertag in gamertags]
             resp = await xbl_client.session.post(
                 "https://userpresence.xboxlive.com/users/batch",
                 json={
@@ -60,7 +60,7 @@ class XboxApi(object):
             player_list = []
             for x in range(len(resp)):
                 is_user_online = XboxApi._parse_is_online(resp[x])
-                player = Player(ids[x], names[x], is_user_online,
+                player = Player(gamertags[x], is_user_online,
                                 XboxApi._parse_current_title(resp[x]) if is_user_online else None,
                                 XboxApi._parse_last_seen(resp[x]) if "lastSeen" in resp[x] else None)
                 player_list.append(player)
@@ -82,12 +82,13 @@ class XboxApi(object):
     def _parse_current_title(resp):
         for title in resp["devices"][0]["titles"]:
             if title["placement"] == "Full":
-                return title["name"]
-        return resp['devices'][0]['titles'][0]['name']
+                return f'{title["name"]} ({resp["devices"][0]["type"]})' if title["name"] != "Online" else None
+        return f"{resp['devices'][0]['titles'][0]['name']} ({resp['devices'][0]['type']})" if resp['devices'][0]['titles'][0]['name'] != "Online" else None
 
     @staticmethod
     def _parse_last_seen(resp):
         last_seen = humanize.naturaltime(datetime.datetime.fromisoformat(resp["lastSeen"]["timestamp"][:23]) - datetime.datetime.utcnow())
         last_seen = last_seen.replace("from now", "ago")
-
+        if "titleName" in resp["lastSeen"]:
+            last_seen += f" on \"{resp['lastSeen']['titleName']}\""
         return last_seen
