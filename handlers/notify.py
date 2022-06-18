@@ -129,7 +129,8 @@ def notify(update, context):
             if record:
                 for user in record[1]:
                     notify_users_and_msg += f"@{user} "
-                notify_users_and_msg += f"{record[0]}"
+                if record[0]:
+                    notify_users_and_msg += f"{record[0]}"
                 update.message.reply_text(notify_users_and_msg)
             else:
                 update.message.reply_text("You don't have any users or a message to set for notify.")
