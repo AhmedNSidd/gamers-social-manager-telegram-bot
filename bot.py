@@ -10,9 +10,6 @@ Basic Echobot example, repeats messages.
 Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
-
-import os
-
 from handlers import basic, notify, status
 from general.production import PRODUCTION_READY, PORT
 from general.values import HEROKU_APP_URL, TOKEN
