@@ -56,6 +56,7 @@ def main():
     instantiate_tables()
 
     # Start the Bot
+    print(PORT)
     if PRODUCTION_READY:
         updater.start_webhook(listen="0.0.0.0",
                             port=PORT,
