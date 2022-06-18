@@ -10,21 +10,18 @@ Basic Echobot example, repeats messages.
 Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
-
-import os
 from handlers import basic, notify, status
-from general.production import PRODUCTION_READY
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from general.production import PRODUCTION_READY, PORT
+from general.values import HEROKU_APP_URL, TOKEN
+from telegram.ext import Updater, CommandHandler
+from scripts.db.instantiate_tables import instantiate_tables
 
-
-PORT = int(os.environ.get('PORT', '8443'))
 
 def main():
     """Start the bot."""
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
-    TOKEN = os.environ.get("CHADDICTS_TG_BOT_TOKEN")
     updater = Updater(TOKEN, use_context=True)
 
     # Get the dispatcher to register handlers
@@ -43,23 +40,27 @@ def main():
     dp.add_handler(CommandHandler("list_notify_users", notify.list_notify_users))
     dp.add_handler(CommandHandler("list_notify_msg", notify.list_notify_msg))
     dp.add_handler(CommandHandler("notify", notify.notify))
-    dp.add_handler(CommandHandler("add_status_user", status.add_status_user))
-    dp.add_handler(CommandHandler("del_status_user", status.del_status_user))
-    dp.add_handler(CommandHandler("list_status_user", status.list_status_users))
-    dp.add_handler(CommandHandler("status", status.status))
-
-    # on noncommand i.e message - echo the message on Telegram
-    # dp.add_handler(MessageHandler(Filters.text, echo))
+    dp.add_handler(CommandHandler("add_xbox_status", status.add_xbox_status))
+    dp.add_handler(CommandHandler("del_xbox_status", status.del_xbox_status))
+    dp.add_handler(CommandHandler("list_xbox_status", status.list_xbox_status))
+    dp.add_handler(CommandHandler("xbox_status", status.xbox_status, run_async=True))
+    dp.add_handler(CommandHandler("add_playstation_status", status.add_playstation_status))
+    dp.add_handler(CommandHandler("del_playstation_status", status.del_playstation_status))
+    dp.add_handler(CommandHandler("list_playstation_status", status.list_playstation_status))
+    dp.add_handler(CommandHandler("playstation_status", status.playstation_status))
 
     # log all errors
     dp.add_error_handler(basic.error)
+
+    # Create all the necessary tables for the running of the bot.
+    instantiate_tables()
 
     # Start the Bot
     if PRODUCTION_READY:
         updater.start_webhook(listen="0.0.0.0",
                             port=PORT,
-                            url_path=TOKEN)
-        updater.bot.set_webhook("https://chaddicts-tg-bot.herokuapp.com/" + TOKEN)
+                            url_path=TOKEN,
+                            webhook_url=f"{HEROKU_APP_URL}/{TOKEN}")
     else:
         updater.start_polling()
 
