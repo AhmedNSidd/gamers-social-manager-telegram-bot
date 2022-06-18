@@ -1,4 +1,4 @@
 import os
 
-PRODUCTION_READY = False
+PRODUCTION_READY = True
 PORT = int(os.environ.get('PORT', '8443'))
