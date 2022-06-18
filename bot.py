@@ -59,8 +59,8 @@ def main():
     if PRODUCTION_READY:
         updater.start_webhook(listen="0.0.0.0",
                             port=PORT,
-                            url_path=TOKEN)
-        updater.bot.set_webhook(f"{HEROKU_APP_URL}/{TOKEN}")
+                            url_path=TOKEN,
+                            webhook_url=f"{HEROKU_APP_URL}/{TOKEN}")
     else:
         updater.start_polling()
 
