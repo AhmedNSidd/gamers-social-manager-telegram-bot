@@ -1,5 +1,11 @@
 """
-Script to add a new playstation npsso 
+Script to add a new playstation npsso to the database provided in the DATABASE_URL.
+This script assumes that a table with the proper schema already exists at the
+database. If this is not the case, look into running
+scripts/db/instantiate_tables.py first.
+
+For more information on the obtaining of a Playstation npsso, reference the
+DEVELOPMENT.md file at the root of project.
 """
 import argparse
 import os
@@ -29,7 +35,7 @@ def validate_and_store_npsso(npsso: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Authenticate with PSN")
+    parser = argparse.ArgumentParser(description="Authenticate the PSN API using an npsso")
     parser.add_argument(
         "--npsso",
         "-n",

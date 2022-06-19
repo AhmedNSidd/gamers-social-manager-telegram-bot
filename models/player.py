@@ -3,7 +3,8 @@ from general import values
 
 class Player(object):
     """
-    :param online_id: ID of the player (gamertag for xbox, psn_online_id for playstation)
+    :param online_id: ID of the player (gamertag for xbox,
+        psn_online_id for playstation, steam_id64 for steam)
     :param is_online: Represents whether the player is currently online
     :param current_title: The current title the player is playing, can be None
     :param last_seen: When the player was last online, can be None

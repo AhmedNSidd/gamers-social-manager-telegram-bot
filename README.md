@@ -1,28 +1,81 @@
-# chaddicts-tg-bot
-This is a telegram bot made for a private group of mine. This bot is based off
-of the [linked work](https://www.codementor.io/@karandeepbatra/part-1-how-to-create-a-telegram-bot-in-python-in-under-10-minutes-19yfdv4wrq):
+# Gamers' Social Manager Telegram Bot
+This is a bot made for the Telegram Messenger application. The purpose of this
+bot is to connect gamers. It does this through two features:
 
-# Overview
+- The ability for a user to see the online statuses of the players they choose
+on a gaming platform that they wish (Xbox, Playstation, or Steam)
+- The ability to notify all players in a group when it's time to play games.
 
-This bot has a list of features useful to the running functions of the Chaddicts
-telegram group.
+This is the ideal bot to add to your Telegram group if your group contains
+gamers that play on Xbox, Playstation, or Steam, and you all regularly play
+with each other.
 
-# Features
+The bot can be found at https://t.me/GamersSocialManagerBot
 
-## Help
+# Overview of All Available Commands
 
-A user can run `/help` to get a list of commands they can run.
+## General Commands
+```
+/help -- The bot will send this message that you're reading right now.
 
-## Quip
+/f -- The bot will reply with a gif to help pay respect.
 
-A user can run `/quip` to get a quip.
+/mf -- The bot will reply with a sad... sad.. voice note.
 
-## Notify for Games
+/age -- The bot will reply with how old the bot is.
+```
+## Notify Commands 
+### Send a preset message while tagging preset users
+```
+/add_notify_user [username without @] -- The bot will add the username to the list of people you want to notify
+
+/remove_notify_user [username without @] -- The bot will delete the username from the list of people you want to notify
+
+/set_notify_msg [message] -- The bot will set this as the message that will be sent when you run /notify
+
+/notify_info -- The bot will display the list of users who've been set to be notified, as well as the notify message, without actually tagging users.
+
+/notify -- The bot will send the preset message while tagging the preset users.
+```
 
 
-A user can run `/notify` to send the preset notify message.
-This notify message can be set through `/setnotify [add message here]`
+## Status Commands
+### Get status of players on Xbox Live, PSN, and Steam
+```
+/add_status -- The bot will ask you for the online IDs for the corresponding service you wish to display the online status for (Xbox Live, PSN, Steam).
 
-## Status of Gamers
+/remove_status [display_name] -- The bot will stop displaying the statuses for the user that is associated with the display name.
 
-A user can run `/status` to see the online status of gamer members and when they were last online.
+/status -- The bot will list the online statuses of the added users, as well as the game that they are currently playing, or the last time they were seen online 
+```
+# Features Overview
+
+In this section, we will go into more details on the main features of this bot:
+Notify and Status
+
+## Notify
+
+
+- /add_notify_user [username without @]
+
+This command is used to setup the main command (/notify) by adding in the a user 
+
+- /remove_notify_user [username without @]
+
+- /set_notify_msg [message]
+
+- /notify_info
+
+- /notify
+
+
+
+## Status
+
+
+# Running The Bot
+
+## Environment Variables
+
+# Contributions / Open Source
+
