@@ -45,6 +45,6 @@ ADMIN_LIST = [247340182]
 
 BOT_URL = "https://t.me/GamersSocialManagerBot"
 HEROKU_APP_URL = os.environ.get("APP_URL")
-TOKEN = os.environ.get("CHADDICTS_TG_BOT_TOKEN")
+TOKEN = os.environ.get("GSM_TG_BOT_TOKEN")
 XBOX_CLIENT_SECRET_EXPIRY_DATE = datetime.datetime.strptime(os.environ.get("XBOX_CLIENT_SECRET_EXPIRY_DATE", "Jun 16, 2024"), "%b %d, %Y").date()
 
