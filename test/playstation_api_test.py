@@ -1,3 +1,8 @@
+"""
+This is a test script that uses the Playstation API defined in the
+external_handlers/ folder and it prints the statuses for the given PSN Online
+IDs how they would be formatted in a telegram chat.
+"""
 import os
 import psycopg2
 import urllib.parse as urlparse
@@ -14,10 +19,8 @@ with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.passwor
 
         client = PlaystationApi(credentials[1])
 
-        players = client.get_players(
-            [8935577953138603589, 2335563073228162671, 876334464644026317],
-            ["Karlissa", "Raf", "David"]
-        )
+        players = client.get_players(["PSNOnlineID1", "PSNOnlineID2",
+                                     "PSNOnlineID3"])
                 
         players.sort()
         print("".join(players))

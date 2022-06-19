@@ -1,7 +1,11 @@
 """
-Script for storing authentication credentials into the database. Client ID
-and Client Secret. Using that, the script will add the appropriate tokens
-to the database.
+Script for storing Xbox authentication credentials into the database in the
+DATABASE_URL. This script assumes that a table with the proper schema already
+exists at the database. If this is not the case, look into running
+scripts/db/instantiate_tables.py first.
+
+For more information on the obtaining of these Xbox authentication credentials,
+reference the DEVELOPMENT.md file at the root of project.
 """
 import argparse
 import asyncio

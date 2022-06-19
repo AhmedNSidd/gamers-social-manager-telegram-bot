@@ -23,6 +23,7 @@ def set_notify_msg(update, context):
 
         update.message.reply_text("Done! The new notify message has been set.")
 
+
 def add_notify_user(update, context):
     with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
         if not context.args:
@@ -88,6 +89,7 @@ def del_notify_user(update, context):
 
         update.message.reply_text("Done! The new user(s) have been deleted.")
 
+
 def list_notify_users(update, context):
     with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
         listed_notify_users = "The users to notify are:"
@@ -117,7 +119,7 @@ def list_notify_msg(update, context):
                 listed_notify_msg += " '" + curr_msg[0] + "'"
 
         update.message.reply_text(listed_notify_msg)
-    
+
 
 def notify(update, context):
     with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:

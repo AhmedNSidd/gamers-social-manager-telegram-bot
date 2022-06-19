@@ -1,23 +1,7 @@
 import datetime
+import humanize
 import os
 
-quips = [
-    "How bout you align your chakras before coming at me with that poison",
-    "You realize Steve Jobs is spying on you right? That every little camera in that phone is a hole for Jobs to peep your peep while you sleep?",
-    "What are you doing step bro...",
-    "To be fair, you do have to have a very high IQ to meditate.",
-    "Imagine making meditation your entire personality.",
-    "Imagine not making meditation your entire personality",
-    "The only thing falling faster than the GME stock is Ahmed's grades.",
-    "Sorry, I don't watch tiktok. I'm not a virgin.",
-    "IT'S A FUCKING JOKE MAN! HAHAHA",
-    "ASS!",
-    "Shut the fuck up you fucking pussy",
-    "Can you get off Playstation's dick already?",
-    "Land on me, land on three",
-    "We should give Alex another chance, I'm sure he's changed. He means well now.",
-    "The Great Way is not difficult for those who have no preferences. When love and hate are both absent, everything becomes clear and undisguised. Make the smallest distinction, however, and heaven and earth are set infinitely apart. If you wish to see the truth, then hold no opinions for, or against, anything."
-]
 
 help_message = """Here are the list of commands available to you:
 
@@ -27,6 +11,7 @@ General Commands
 /quip -- The bot will hit you up with a mighty fine quip or just an okay one.
 /f -- The bot will reply with a gif to help pay respect.
 /mf -- The bot will reply with a sad... sad.. voice note.
+/age -- The bot will reply with how old the bot is.
 
 Notify Commands - Send a preset message while tagging preset users
 -----------------------------------------------------------------------
@@ -51,15 +36,15 @@ Status Commands - Get status of players on Xbox Live and PSN.
 /playstation_status -- The bot will fetch the PSN statuses of the set users and see if they're online.
 """
 
-birth_date = (datetime.date.today() - datetime.date(2021, 2, 8)).days
+AGE = (humanize.naturaltime((datetime.datetime.now() - datetime.datetime(2021, 2, 8, 1, 1, 1)))).replace("", "ago")
 
 ONLINE_EMOJI = u"\U0001F7E2"
 OFFLINE_EMOJI = u"\U0001F534"
 
 ADMIN_LIST = [247340182]
 
-BOT_URL = "https://t.me/chaddicts_bot"
-HEROKU_APP_URL = "https://chaddicts-tg-bot.herokuapp.com"
+BOT_URL = "https://t.me/GamersSocialManagerBot"
+HEROKU_APP_URL = os.environ.get("APP_URL")
 TOKEN = os.environ.get("CHADDICTS_TG_BOT_TOKEN")
 XBOX_CLIENT_SECRET_EXPIRY_DATE = datetime.datetime.strptime(os.environ.get("XBOX_CLIENT_SECRET_EXPIRY_DATE", "Jun 16, 2024"), "%b %d, %Y").date()
 

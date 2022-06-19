@@ -1,14 +1,7 @@
 """
-Simple Bot to reply to Telegram messages.
-
-First, a few handler functions are defined. Then, those functions are passed to
-the Dispatcher and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-
-Usage:
-Basic Echobot example, repeats messages.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
+This is a bot made for the Telegram Messenger application. The purpose of this
+bot is to connect gamers by allowing them to see other's online statuses, and
+notifying each other when it's time to play.
 """
 from handlers import basic, notify, status
 from general.production import PRODUCTION_READY, PORT
@@ -18,10 +11,6 @@ from scripts.db.instantiate_tables import instantiate_tables
 
 
 def main():
-    """Start the bot."""
-    # Create the Updater and pass it your bot's token.
-    # Make sure to set use_context=True to use the new context based callbacks
-    # Post version 12 this will no longer be necessary
     updater = Updater(TOKEN, use_context=True)
 
     # Get the dispatcher to register handlers
@@ -30,10 +19,8 @@ def main():
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", basic.start))
     dp.add_handler(CommandHandler("help", basic.help_message))
-    dp.add_handler(CommandHandler("quip", basic.quip))
     dp.add_handler(CommandHandler("f", basic.f))
     dp.add_handler(CommandHandler("mf", basic.mf))
-    dp.add_handler(CommandHandler("get_group_id", basic.get_group_id))
     dp.add_handler(CommandHandler("add_notify_user", notify.add_notify_user))
     dp.add_handler(CommandHandler("del_notify_user", notify.del_notify_user))
     dp.add_handler(CommandHandler("set_notify_msg", notify.set_notify_msg))

@@ -1,3 +1,8 @@
+"""
+This is a test script that uses the Xbox API defined in the external_handlers/
+folder and it prints the statuses for the given Xbox Live Gamertags how they
+would be formatted in a telegram chat.
+"""
 import os
 import psycopg2
 import urllib.parse as urlparse
@@ -22,10 +27,8 @@ with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.passwor
             "issued": credentials[9] 
         })
 
-        players = client.get_players(
-            [2533274851179327, 2535423896660686, 2533274856229097],
-            ["Rickus", "Jas", "Grant"]
-        )
+        players = client.get_players(["XboxGamertag1", "XboxGamertag2",
+                                     "XboxGamertag3"])
                 
         players.sort()
         print("".join(players))
