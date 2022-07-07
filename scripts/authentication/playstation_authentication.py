@@ -8,30 +8,31 @@ For more information on the obtaining of a Playstation npsso, reference the
 DEVELOPMENT.md file at the root of project.
 """
 import argparse
-import os
-import psycopg2
-import urllib.parse as urlparse
+import pathlib
+import sys
+sys.path.append(pathlib.PurePath(pathlib.Path(__file__).parent.absolute(),
+                                 "../..").__str__())
 
+from general.db import INSERT, DBConnection, SELECT_WHERE, UPDATE_WHERE, INSERT
 from psnawp_api import authenticator
 
 
-url = urlparse.urlparse(os.environ['DATABASE_URL'])
-
 def validate_and_store_npsso(npsso: str):
     # This will raise errors if the npsso is invalid.
-    authenticator.Authenticator(npsso) 
-    with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM playstation_credential")
-            existing_credentials = cursor.fetchone()
-            if existing_credentials and existing_credentials[1] == npsso:
-                print("The npsso code provided has already been previously stored and validated!")
-            else:
-                if existing_credentials:
-                    cursor.execute(f"DELETE FROM playstation_credential WHERE id={existing_credentials[0]}")
-            
-                cursor.execute(f"INSERT INTO playstation_credential (npsso) VALUES('{npsso}')")
-                print("Success! The PSN API is now ready to be used.")
+    authenticator.Authenticator(npsso)
+    existing_credentials = DBConnection().fetchone(
+        SELECT_WHERE.format("psnNpsso", "Credentials", "id = 1"))
+    if existing_credentials and existing_credentials[0] == npsso:
+        print("The npsso code provided has already been previously stored and validated!")
+    else:
+        if existing_credentials:
+            DBConnection().execute(UPDATE_WHERE.format("Credentials",
+                                                       f"psnNpsso='{npsso}'",
+                                                       "id=1"))
+        else:
+            DBConnection().execute(INSERT.format("Credentials(id, psnNpsso)",
+                                                 f"VALUES(1, '{npsso}')"))
+        print("Success! The PSN API is now ready to be used.")
 
 
 def main():
