@@ -150,6 +150,63 @@ def main():
         run_async=True
     )
 
+    add_notify_group_conversation = ConversationHandler(
+        entry_points=[
+            CommandHandler("add_notify_group", notify.add_notify_group.start)
+        ],
+        states={
+            notify.add_notify_group.TYPING_NAME: [
+                MessageHandler(Filters.text & (~Filters.command),
+                               notify.add_notify_group.process_name),
+            ],
+            notify.add_notify_group.TYPING_DESCRIPTION: [
+                MessageHandler(Filters.text & (~Filters.command),
+                               notify.add_notify_group.process_description),
+                CallbackQueryHandler(
+                    notify.add_notify_group.process_description,
+                    pattern="^skip_description$"
+                )
+            ],
+            notify.add_notify_group.CHOOSING_JOINING_POLICY: [
+                CallbackQueryHandler(
+                    notify.add_notify_group.process_joining_policy,
+                    pattern="^(Open|InviteOnly)_joining_policy$"
+                )
+            ],
+        },
+        fallbacks=[
+            CallbackQueryHandler(notify.add_notify_group.cancel, "^cancel$"),
+            MessageHandler(Filters.command, notify.add_notify_group.stop_cmds)
+        ],
+        allow_reentry=True,
+        per_chat=False,
+        run_async=True
+    )
+
+    notify_group_invites_conversation = ConversationHandler(
+        entry_points=[
+            CommandHandler(
+                "invite_to_notify_group",
+                notify.notify_group_invites.invite
+            )
+        ],
+        states={
+            notify.notify_group_invites.WAITING_FOR_REPLY: [
+                CallbackQueryHandler(
+                    notify.notify_group_invites.reply_to_invite,
+                    pattern="^(accept|decline)_[0-9]+$"
+                )
+            ]
+        },
+        fallbacks=[
+            CallbackQueryHandler(notify.add_notify_group.cancel, "^cancel$"),
+            MessageHandler(Filters.command, notify.add_notify_group.stop_cmds)
+        ],
+        allow_reentry=True,
+        per_user=False,
+        run_async=True
+    )
+
 
     
 
@@ -167,6 +224,14 @@ def main():
     # dp.add_handler(CommandHandler("list_notify_users", notify.list_notify_users))
     # dp.add_handler(CommandHandler("list_notify_msg", notify.list_notify_msg))
     # dp.add_handler(CommandHandler("notify", notify.notify))
+    dp.add_handler(add_notify_group_conversation, 4)
+    dp.add_handler(notify_group_invites_conversation, 5)
+    dp.add_handler(
+        CommandHandler("list_notify_groups", notify.list_notify_groups.list), 1
+    )
+    dp.add_handler(
+        CommandHandler("join_notify_group", notify.join_notify_group.join), 1
+    )
 
     dp.add_handler(add_status_user_conversation, 2)
     dp.add_handler(modify_status_user_conversation, 3)
