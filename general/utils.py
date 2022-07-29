@@ -13,3 +13,6 @@ def create_sql_array(data):
             array += ", {}".format(datum)
         array += "]"
     return array
+
+def get_stringized_sql_value(unstringized_val):
+    return "'" + str(unstringized_val) + "'" if unstringized_val else "NULL"

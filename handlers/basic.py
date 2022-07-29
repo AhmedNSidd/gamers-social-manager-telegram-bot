@@ -1,16 +1,42 @@
 import logging
+
 from general import values
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 
 
 # Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
 logger = logging.getLogger(__name__)
 
 def start(update, context):
     """Send a message when the command /start is issued."""
-    update.message.reply_text("*Drops down from a scaffolding* Hello there...")
+    start_msg = ("\*Drops down from a scaffolding\* Hello there...\n\nChoose "
+                 "the following options")
+    keyboard_markup = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    f"{values.PLUS_EMOJI} Add a Status User",
+                    callback_data="add_status_user"
+                ),
+                InlineKeyboardButton(
+                    f"{values.PENCIL_EMOJI} Modify Status Users",
+                    callback_data="modify_status_user"
+                )
+            ]
+        ]
+    )
+    update.message.reply_text(start_msg, reply_markup=keyboard_markup,
+                              parse_mode=ParseMode.MARKDOWN)
+
+def test(update, context):
+    """Send a message when the command /help is issued."""
+    print(update)
+    print(update.message.chat.permissions)
 
 def help_message(update, context):
     """Send a message when the command /help is issued."""

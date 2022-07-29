@@ -3,32 +3,30 @@ This is a test script that uses the Xbox API defined in the external_handlers/
 folder and it prints the statuses for the given Xbox Live Gamertags how they
 would be formatted in a telegram chat.
 """
-import os
-import psycopg2
-import urllib.parse as urlparse
+import asyncio
+import pathlib
+import sys
+import time
+sys.path.append(pathlib.PurePath(pathlib.Path(__file__).parent.absolute(),
+                                 "..").__str__())
+from external_handlers.apis import XboxLiveApi
 
-from external_handlers.xbox_api import XboxApi
+
+def main():
+    gamertags = ["JeSuisAhmedN", "Cell520", "JassyLamb", "WizardBinkie760",
+                 "WARHEAD1996", "Lynx", "Canadian David7", "Tam not Sam"]
+    account_ids = [2535442671459226, 2533274856229097, 2535423896660686,
+                   2535445802251685, 2533274841295769, 2645864781080579,
+                   2533274851179327, 2533274861060066]
+    client = XboxLiveApi()
+    st = time.time()
+    presences = asyncio.run(client.get_players_presences(account_ids, gamertags))
+    et = time.time()
+    elapsed_time = et - st
+    print('Execution time:', elapsed_time, 'seconds')
+    # for presence in presences:
+    #     print(presence)
 
 
-url = urlparse.urlparse(os.environ['DATABASE_URL'])
-
-with psycopg2.connect(dbname=url.path[1:],user=url.username,password=url.password,host=url.hostname,port=url.port) as conn:
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT * FROM xbox_credentials")
-        credentials = cursor.fetchone()
-
-        client = XboxApi(credentials[1], credentials[2], {
-            "token_type": credentials[3],
-            "expires_in": credentials[4],
-            "scope": credentials[5],
-            "access_token": credentials[6],
-            "refresh_token": credentials[7],
-            "user_id": credentials[8],
-            "issued": credentials[9] 
-        })
-
-        players = client.get_players(["XboxGamertag1", "XboxGamertag2",
-                                     "XboxGamertag3"])
-                
-        players.sort()
-        print("".join(players))
+if __name__ == "__main__":
+    main()
