@@ -6,9 +6,8 @@ notifying each other when it's time to play.
 from external_handlers.apis_wrapper import ApisWrapper
 from general.db import DBConnection
 from general.production import PRODUCTION_READY, PORT
-from general.values import HEROKU_APP_URL, TOKEN
+from general.values import TOKEN
 from handlers import basic, notify, status
-from scripts.db.instantiate_tables import instantiate_tables
 from telegram.ext import (Updater, CallbackQueryHandler, CommandHandler,
                           ConversationHandler, Filters, MessageHandler)
 
@@ -207,9 +206,6 @@ def main():
         run_async=True
     )
 
-
-    
-
     # Register handlers for commands. Also add an integer as the second
     # parameter to signify groupings.
     dp.add_handler(CommandHandler("start", basic.start), 1)
@@ -240,9 +236,6 @@ def main():
     # log all errors
     dp.add_error_handler(basic.error)
 
-    # Setup necessary stuff for the running of the bot such as:
-    # The database schema
-    instantiate_tables()
     # Setup the APIs
     ApisWrapper()
     # Setup the connection to the database...
@@ -250,10 +243,8 @@ def main():
 
     # Start the Bot
     if PRODUCTION_READY:
-        updater.start_webhook(listen="0.0.0.0",
-                            port=PORT,
-                            url_path=TOKEN,
-                            webhook_url=f"{HEROKU_APP_URL}/{TOKEN}")
+        updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
+                            #   webhook_url=f"{HEROKU_APP_URL}/{TOKEN}")
     else:
         updater.start_polling()
 

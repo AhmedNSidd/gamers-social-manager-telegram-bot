@@ -2,10 +2,8 @@ import asyncio
 import datetime
 import humanize
 import json
-import os
 import psnawp_api
 import requests
-import urllib.parse as urlparse
 
 from general import values
 from general.db import DBConnection, SELECT, UPDATE_WHERE
@@ -17,7 +15,6 @@ from xbox.webapi.authentication.models import OAuth2TokenResponse
 from xbox.webapi.scripts import REDIRECT_URI
 
 
-url = urlparse.urlparse(os.environ['DATABASE_URL'])
 
 class PsnApi:
     instance = None
