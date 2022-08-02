@@ -1,0 +1,33 @@
+version: '3.9'
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=${GSM_DB_USER}
+      - POSTGRES_PASSWORD=${GSM_DB_PASSWORD}
+      - PGUSER=${GSM_DB_USER}
+    ports:
+      - ${GSM_DB_PORT}:${GSM_DB_PORT}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./bot/db/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  bot:
+    build:
+      context: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - GSM_DB_URL=${GSM_DB_URL:?err}
+      - GSM_TG_BOT_TOKEN=${GSM_TG_BOT_TOKEN:?err}
+    volumes:
+      - ./bot/:/bot
+
+volumes:
+  postgres:
