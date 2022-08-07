@@ -7,7 +7,7 @@ from external_handlers.apis_wrapper import ApisWrapper
 from general.db import DBConnection
 from general.production import PRODUCTION_READY, PORT
 from general.values import TOKEN
-from handlers import basic, notify, status
+from handlers import basic, notify_groups, status
 from telegram.ext import (Updater, CallbackQueryHandler, CommandHandler,
                           ConversationHandler, Filters, MessageHandler)
 
@@ -66,11 +66,11 @@ def main():
                 CallbackQueryHandler(status.modify_status_user.start,
                                      pattern="^modify_status_user$"),
                 CallbackQueryHandler(status.modify_status_user.edit_or_delete,
-                                     pattern="^[0-9]+$"),
+                                     pattern="^[0-9a-f]{24}$"),
                 CallbackQueryHandler(status.modify_status_user.edit,
-                                     pattern="^edit_[0-9]+$"),
+                                     pattern="^edit_[0-9a-f]{24}$"),
                 CallbackQueryHandler(status.modify_status_user.delete,
-                                     pattern="^delete_[0-9]+$"),
+                                     pattern="^delete_[0-9a-f]{24}$"),
                 # If we get any text or commands, we can just ignore it
                 # MessageHandler(Filters.text | Filters.command,
                 #                lambda u,c : status.MODIFYING_STATUS_USER)
@@ -130,15 +130,15 @@ def main():
                 CallbackQueryHandler(status.modify_status_user.cancel,
                                      pattern="^cancel$"),
                 CallbackQueryHandler(status.modify_status_user.confirm_delete,
-                                     pattern="^confirm_delete_[0-9]+$"),
+                                     pattern="^confirm_delete_[0-9a-f]{24}$"),
             ],
             status.modify_status_user.DELETING_STATUS_USER: [
                 CallbackQueryHandler(status.modify_status_user.edit_or_delete,
-                                     pattern="^[0-9]+$"),
+                                     pattern="^[0-9a-f]{24}$"),
                 CallbackQueryHandler(status.modify_status_user.delete,
-                                     pattern="^delete_[0-9]+$"),
+                                     pattern="^delete_[0-9a-f]{24}$"),
                 CallbackQueryHandler(status.modify_status_user.confirm_delete,
-                                     pattern="^confirm_delete_[0-9]+$"),
+                                     pattern="^confirm_delete_[0-9a-f]{24}$"),
             ]
         },
         fallbacks=[
@@ -151,31 +151,31 @@ def main():
 
     add_notify_group_conversation = ConversationHandler(
         entry_points=[
-            CommandHandler("add_notify_group", notify.add_notify_group.start)
+            CommandHandler("add_notify_group", notify_groups.creation_and_modification.start)
         ],
         states={
-            notify.add_notify_group.TYPING_NAME: [
+            notify_groups.creation_and_modification.TYPING_NAME: [
                 MessageHandler(Filters.text & (~Filters.command),
-                               notify.add_notify_group.process_name),
+                               notify_groups.creation_and_modification.process_name),
             ],
-            notify.add_notify_group.TYPING_DESCRIPTION: [
+            notify_groups.creation_and_modification.TYPING_DESCRIPTION: [
                 MessageHandler(Filters.text & (~Filters.command),
-                               notify.add_notify_group.process_description),
+                               notify_groups.creation_and_modification.process_description),
                 CallbackQueryHandler(
-                    notify.add_notify_group.process_description,
+                    notify_groups.creation_and_modification.process_description,
                     pattern="^skip_description$"
                 )
             ],
-            notify.add_notify_group.CHOOSING_JOINING_POLICY: [
+            notify_groups.creation_and_modification.CHOOSING_JOINING_POLICY: [
                 CallbackQueryHandler(
-                    notify.add_notify_group.process_joining_policy,
-                    pattern="^(Open|InviteOnly)_joining_policy$"
+                    notify_groups.creation_and_modification.process_joining_policy,
+                    pattern="^(open|inviteonly)_joining_policy$"
                 )
             ],
         },
         fallbacks=[
-            CallbackQueryHandler(notify.add_notify_group.cancel, "^cancel$"),
-            MessageHandler(Filters.command, notify.add_notify_group.stop_cmds)
+            CallbackQueryHandler(notify_groups.creation_and_modification.cancel, "^cancel$"),
+            MessageHandler(Filters.command, notify_groups.creation_and_modification.stop_cmds)
         ],
         allow_reentry=True,
         per_chat=False,
@@ -186,20 +186,20 @@ def main():
         entry_points=[
             CommandHandler(
                 "invite_to_notify_group",
-                notify.notify_group_invites.invite
+                notify_groups.invitations.invite
             )
         ],
         states={
-            notify.notify_group_invites.WAITING_FOR_REPLY: [
+            notify_groups.invitations.WAITING_FOR_REPLY: [
                 CallbackQueryHandler(
-                    notify.notify_group_invites.reply_to_invite,
-                    pattern="^(accept|decline)_[0-9]+$"
+                    notify_groups.invitations.reply_to_invite,
+                    pattern="^(accept|decline)_[0-9a-f]{24}$"
                 )
             ]
         },
         fallbacks=[
-            CallbackQueryHandler(notify.add_notify_group.cancel, "^cancel$"),
-            MessageHandler(Filters.command, notify.add_notify_group.stop_cmds)
+            CallbackQueryHandler(notify_groups.creation_and_modification.cancel, "^cancel$"),
+            MessageHandler(Filters.command, notify_groups.creation_and_modification.stop_cmds)
         ],
         allow_reentry=True,
         per_user=False,
@@ -223,10 +223,10 @@ def main():
     dp.add_handler(add_notify_group_conversation, 4)
     dp.add_handler(notify_group_invites_conversation, 5)
     dp.add_handler(
-        CommandHandler("list_notify_groups", notify.list_notify_groups.list), 1
+        CommandHandler("list_notify_groups", notify_groups.utilities.list_notify_groups), 1
     )
     dp.add_handler(
-        CommandHandler("join_notify_group", notify.join_notify_group.join), 1
+        CommandHandler("join_notify_group", notify_groups.invitations.join), 1
     )
 
     dp.add_handler(add_status_user_conversation, 2)

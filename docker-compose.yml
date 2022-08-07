@@ -1,33 +1,31 @@
 version: '3.9'
 services:
   db:
-    image: postgres
+    image: mongo
     restart: always
     environment:
-      - POSTGRES_USER=${GSM_DB_USER}
-      - POSTGRES_PASSWORD=${GSM_DB_PASSWORD}
-      - PGUSER=${GSM_DB_USER}
+        - MONGO_INITDB_DATABASE=${GSM_DB_USER_AND_DB}
+        - MONGO_INITDB_ROOT_USERNAME=${GSM_DB_USER_AND_DB}
+        - MONGO_INITDB_ROOT_PASSWORD=${GSM_DB_PASSWORD}
     ports:
       - ${GSM_DB_PORT}:${GSM_DB_PORT}
     volumes:
-      - postgres:/var/lib/postgresql/data
-      - ./bot/db/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - mongodb:/data/db
+      # - ./bot/db/:/docker-entrypoint-initdb.d/
   bot:
     build:
       context: .
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     environment:
-      - GSM_DB_URL=${GSM_DB_URL:?err}
       - GSM_TG_BOT_TOKEN=${GSM_TG_BOT_TOKEN:?err}
+      - GSM_DB_HOSTNAME=${GSM_DB_HOSTNAME}
+      - GSM_DB_USER_AND_DB=${GSM_DB_USER_AND_DB}
+      - GSM_DB_PASSWORD=${GSM_DB_PASSWORD}
+      - GSM_DB_PORT=${GSM_DB_PORT}
+      - XBOX_CLIENT_SECRET_EXPIRY_DATE=${XBOX_CLIENT_SECRET_EXPIRY_DATE}
     volumes:
       - ./bot/:/bot
 
 volumes:
-  postgres:
+  mongodb:

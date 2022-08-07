@@ -7,15 +7,16 @@ from general import values
 
 def status(update, context):
     st = time.time()
-    message = update.message.reply_text(f"{values.RAISED_HAND_EMOJI} Please "
-                                        "hold as I fetch the status of the "
-                                        "users in this group. Note this can "
-                                        "take up to 30 seconds!")
+    message = update.message.reply_text(
+        f"{values.RAISED_HAND_EMOJI} Please hold as I fetch the status of the "
+        "users in this group. Note this can take up to 30 seconds!"
+    )
     api_wrapper = ApisWrapper()
     e1 = time.time()
     print('Time to initialize API wrapper:', e1-st, 'seconds')
-    players = asyncio.run(api_wrapper.get_presence_from_apis(
-                                                    update.message.chat.id))
+    players = asyncio.run(
+        api_wrapper.get_presence_from_apis(update.message.chat.id)
+    )
     e2 = time.time()
     print('Time to get presence from API:', e2-e1, 'seconds')
     if not players:
