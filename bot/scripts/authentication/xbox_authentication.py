@@ -9,6 +9,7 @@ reference the DEVELOPMENT.md file at the root of project.
 """
 import argparse
 import asyncio
+import json
 import pathlib
 import sys
 import webbrowser
@@ -17,7 +18,7 @@ sys.path.append(pathlib.PurePath(pathlib.Path(__file__).parent.absolute(),
                                  "../..").__str__())
 
 from aiohttp import ClientSession, web
-from general.db import DBConnection, SELECT_WHERE, UPDATE_WHERE, INSERT
+from general.db import DBConnection
 from xbox.webapi.authentication.manager import AuthenticationManager
 from xbox.webapi.authentication.models import OAuth2TokenResponse
 from xbox.webapi.scripts import REDIRECT_URI
@@ -46,64 +47,56 @@ async def async_main(client_id: str, client_secret: str, redirect_uri: str):
         # Here we need to access the database, 
         # if there are existing tokens AND the secrets match, then we can just
         # refresh the tokens otherwise, we need to create new tokens.
-        existing_credentials = DBConnection().fetchone(
-            SELECT_WHERE.format("xboxClientID, xboxClientSecret, xboxTokenType,"
-                " xboxExpiresIn, xboxScope, xboxAccessToken, xboxRefreshToken,"
-                " xboxUserID, xboxIssued", "Credentials", "id = 1"))
+        credentials = DBConnection().find_one("credentials",
+                                              {"platform": "xbox"})
 
-        if existing_credentials and existing_credentials[1] == client_secret:
-            tokens = {
-                "token_type": existing_credentials[2],
-                "expires_in": existing_credentials[3],
-                "scope": existing_credentials[4],
-                "access_token": existing_credentials[5],
-                "refresh_token": existing_credentials[6], 
-                "user_id": existing_credentials[7], 
-                "issued": existing_credentials[8]
-            }
-            auth_mgr.oauth = OAuth2TokenResponse.parse_raw(tokens)
-            try:
-                await auth_mgr.refresh_tokens()
-            except:
-                print("Error refreshing tokens")
-
-            tokens = auth_mgr.oauth.dict()
-            DBConnection().execute(UPDATE_WHERE.format(
-                "Credentials", f"xboxTokenType = '{tokens['token_type']}',"
-                f" xboxExpiresIn = {tokens['expires_in']},"
-                f" xboxScope = '{tokens['scope']}',"
-                f" xboxAccessToken = '{tokens['access_token']}',"
-                f" xboxRefreshToken = '{tokens['refresh_token']}',"
-                f" xboxUserID = '{tokens['user_id']}',"
-                f" xboxIssued = '{tokens['issued']}'", "id = 1"))
-        else:
-            # here we need to create new token
+        if not credentials or credentials["client_secret"] != client_secret:
             auth_url = auth_mgr.generate_authorization_url()
             webbrowser.open(auth_url)
             code = await queue.get()
             await auth_mgr.request_tokens(code)
-            tokens = auth_mgr.oauth.dict()
-            if existing_credentials:
-                DBConnection().execute(UPDATE_WHERE.format(
-                    "Credentials", f"xboxClientID = '{client_id}',"
-                    f" xboxClientSecret = '{client_secret}',"
-                    f" xboxTokenType = '{tokens['token_type']}',"
-                    f" xboxExpiresIn = {tokens['expires_in']},"
-                    f" xboxScope = '{tokens['scope']}',"
-                    f" xboxAccessToken = '{tokens['access_token']}',"
-                    f" xboxRefreshToken = '{tokens['refresh_token']}',"
-                    f" xboxUserID = '{tokens['user_id']}',"
-                    f" xboxIssued = '{tokens['issued']}'", "id = 1"))
+            tokens = json.loads(auth_mgr.oauth.json())
+            # tokens["issued"] = str(tokens["issued"])
+            if not credentials:
+                DBConnection().insert_one("credentials",
+                    {
+                        "platform": "xbox",
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "tokens": tokens
+                    }
+                )
             else:
-                DBConnection().execute(INSERT.format(
-                    "Credentials (id, xboxClientID, xboxClientSecret,"
-                    " xboxTokenType, xboxExpiresIn, xboxScope,"
-                    " xboxAccessToken, xboxRefreshToken, xboxUserID,"
-                    " xboxIssued)", f"VALUES(1, '{client_id}', "
-                    f"'{client_secret}', '{tokens['token_type']}', "
-                    f"{tokens['expires_in']}, '{tokens['scope']}', "
-                    f"'{tokens['access_token']}', '{tokens['refresh_token']}',"
-                    f" '{tokens['user_id']}', '{tokens['issued']}')"))
+                DBConnection().update_one(
+                    "credentials",
+                    {"platform": "xbox"},
+                    {"$set": {
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "tokens": tokens
+                    }}
+                )
+        else:
+            auth_mgr.oauth = OAuth2TokenResponse.parse_raw(
+                json.dumps(credentials["tokens"])
+            )
+            try:
+                await auth_mgr.refresh_tokens()
+            except:
+                print("Error refreshing tokens")
+                exit(-1)
+
+            tokens = json.loads(auth_mgr.oauth.json())
+            DBConnection().update_one(
+                "credentials",
+                {"platform": "xbox"},
+                {"$set": {
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                    "tokens": tokens
+                }}
+            )
+                
         print("Success! The Xbox API is now ready to be used.")
 
 def main():

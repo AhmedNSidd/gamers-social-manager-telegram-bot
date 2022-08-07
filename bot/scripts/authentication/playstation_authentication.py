@@ -13,25 +13,34 @@ import sys
 sys.path.append(pathlib.PurePath(pathlib.Path(__file__).parent.absolute(),
                                  "../..").__str__())
 
-from general.db import INSERT, DBConnection, SELECT_WHERE, UPDATE_WHERE, INSERT
+from general.db import DBConnection
 from psnawp_api import authenticator
 
 
 def validate_and_store_npsso(npsso: str):
     # This will raise errors if the npsso is invalid.
     authenticator.Authenticator(npsso)
-    existing_credentials = DBConnection().fetchone(
-        SELECT_WHERE.format("psnNpsso", "Credentials", "id = 1"))
-    if existing_credentials and existing_credentials[0] == npsso:
-        print("The npsso code provided has already been previously stored and validated!")
+    credentials = DBConnection().find_one("credentials", {"platform": "psn"})
+    
+    if credentials and credentials["npsso"] == npsso:
+        print("The npsso code provided has already been previously stored and "
+              "validated!")
     else:
-        if existing_credentials:
-            DBConnection().execute(UPDATE_WHERE.format("Credentials",
-                                                       f"psnNpsso='{npsso}'",
-                                                       "id=1"))
+        if credentials:
+            DBConnection().update_one(
+                "credentials",
+                {"platform": "psn"},
+                {"$set": {
+                    "npsso": npsso
+                }}
+            )
         else:
-            DBConnection().execute(INSERT.format("Credentials(id, psnNpsso)",
-                                                 f"VALUES(1, '{npsso}')"))
+            DBConnection().insert_one("credentials",
+                {
+                    "platform": "psn",
+                    "npsso": npsso
+                }
+            )
         print("Success! The PSN API is now ready to be used.")
 
 

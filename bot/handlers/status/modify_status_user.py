@@ -2,6 +2,7 @@
 import asyncio
 
 from aiohttp import ClientResponseError
+from bson.objectid import ObjectId
 from general import values
 from general.db import UPDATE_WHERE, DBConnection, SELECT_WHERE, DELETE_WHERE
 from general.utils import get_stringized_sql_value
@@ -43,12 +44,11 @@ def start(update, context):
             else None
         )
 
-    records = DBConnection().fetchall(SELECT_WHERE.format(
-        "id,telegramUserId,displayName",
-        "StatusUsers",
-        f"telegramChatId = {context.user_data.get('chat_id')}"
-    ))
-    if not records:
+    current_users_status_users = DBConnection().find(
+        "statususers", {"chat_id": context.user_data.get('chat_id')}
+    )
+
+    if not current_users_status_users:
         error_msg = (
             "You have no status users to modify. Please add one first using "
             "/add_status_user"
@@ -77,11 +77,11 @@ def start(update, context):
 
         my_status_users = {}
         other_status_users = {}
-        for id, user_id, display_name in records:
-            if user_id == context.user_data["user_id"]:
-                my_status_users[id] = display_name
+        for status_user in current_users_status_users:
+            if status_user["user_id"] == context.user_data["user_id"]:
+                my_status_users[status_user["_id"]] = status_user["display_name"]
             else:
-                other_status_users[id] = display_name
+                other_status_users[status_user["_id"]] = status_user["display_name"]
 
         status_user_msg = (
             "Choose to modify either your or someone else's status user in the"
@@ -89,7 +89,11 @@ def start(update, context):
         )
         
     else:
-        my_status_users = {id: display_name for id, _, display_name in records}
+        my_status_users = {}
+        for status_user in current_users_status_users:
+            print(status_user)
+            my_status_users[status_user["_id"]] = status_user["display_name"]
+    
         other_status_users = {}
         status_user_msg = (
             "Choose to modify a status user in this private chat"
@@ -118,7 +122,6 @@ def start(update, context):
             )])
 
     keyboard_markup = InlineKeyboardMarkup(keyboard)
-
     if not is_callback and context.user_data.get("group_name"):
         # This is the case where someone in a group just typed
         # /modify_status_user
@@ -147,32 +150,26 @@ def edit_or_delete(update, context):
     if update.callback_query:
         update = update.callback_query
         update.answer()
-    status_user = DBConnection().fetchone(SELECT_WHERE.format(
-        "*", "StatusUsers", f"id = {update.data}"
-    ))
-    context.user_data['status_user'] = {
-        "id": status_user[0],
-        "chat_id": status_user[1],
-        "user_id": status_user[2],
-        "display_name": status_user[3],
-        "xbox_gamertag": status_user[4],
-        "xbox_account_id": status_user[5],
-        "psn_online_id": status_user[6],
-        "psn_account_id": status_user[7],
-    }
+    
+    user_id = context.user_data["user_id"]
+    query_for_status_user = {"_id": ObjectId(update.data)}
+    status_user_to_modify = DBConnection().find_one("statususers",
+                                                    query_for_status_user)
+    
     status_user_msg = (
         "__Display Name__\n"
-        f"`{context.user_data['status_user']['display_name']}`\n\n"
+        f"`{status_user_to_modify['display_name']}`\n\n"
         "__Xbox Gamertag__\n"
-        f"`{context.user_data['status_user']['xbox_gamertag']}`\n\n"
+        f"`{status_user_to_modify['xbox_gamertag']}`\n\n"
         "__PSN Online ID__"
-        f"\n`{context.user_data['status_user']['psn_online_id']}`\n\n" +
+        f"\n`{status_user_to_modify['psn_online_id']}`\n\n" +
         (f"Added by [this user]"
-         f"(tg://user?id={context.user_data['status_user']['user_id']})"
-         if status_user[2] != context.user_data["user_id"] else
+         f"(tg://user?id={status_user_to_modify['user_id']})"
+         if status_user_to_modify["user_id"] != user_id else
          "Added by [you]"
-         f"(tg://user?id={context.user_data['status_user']['user_id']})")
+         f"(tg://user?id={status_user_to_modify['user_id']})")
     )
+    context.user_data['status_user_to_modify'] = status_user_to_modify
     keyboard = [
         [
             InlineKeyboardButton(f"{values.PENCIL_EMOJI} EDIT",
@@ -185,9 +182,10 @@ def edit_or_delete(update, context):
                                  callback_data="modify_status_user")
         ]
     ]
-    update.edit_message_text(status_user_msg,
-                             reply_markup=InlineKeyboardMarkup(keyboard),
-                             parse_mode=ParseMode.MARKDOWN_V2)
+    update.edit_message_text(
+        status_user_msg, reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
     
     return MAIN_MENU
 
@@ -195,12 +193,17 @@ def edit(update, context):
     if update.callback_query:
         update = update.callback_query
         update.answer()
+
+    user_id =  context.user_data.get("user_id")
+    group_name = context.user_data['group_name']
+    status_user_to_edit = context.user_data.get("status_user_to_modify")
+
     update.message.delete()
     context.user_data["messages"] = []
     context.user_data["messages"].append(context.bot.send_message(
-        context.user_data["user_id"],
+        user_id,
         f"Hey {update.from_user.first_name}! We will edit the status user "
-        f"*{context.user_data['status_user']['display_name']}*\n\nI will "
+        f"*{status_user_to_edit['display_name']}*\n\nI will "
         "ask you to edit your display name/Xbox Live/PSN/Steam IDs. You can "
         "choose to edit these to something else, or choose to skip if you "
         "would prefer not to edit these entries and leave them as it is.\n\n"
@@ -212,19 +215,16 @@ def edit(update, context):
         parse_mode=ParseMode.MARKDOWN
     ))
     context.user_data["messages"].append(context.bot.send_message(
-        context.user_data["user_id"],
+        user_id,
         "Below are the details of the status user you're editing:\n\n"
         "__Display Name__\n"
-        f"`{context.user_data['status_user']['display_name']}`\n\n"
+        f"`{status_user_to_edit['display_name']}`\n\n"
         "__Xbox Gamertag__\n"
-        f"`{context.user_data['status_user']['xbox_gamertag']}`\n\n"
+        f"`{status_user_to_edit['xbox_gamertag']}`\n\n"
         "__PSN Online ID__\n"
-        f"`{context.user_data['status_user']['psn_online_id']}`\n\n" +
-        "Added by [you]"
-        f"(tg://user?id={context.user_data['status_user']['user_id']}) in " +
-        (f"the _{context.user_data['group_name']}_ group" 
-         if context.user_data.get("group_name") else 
-         "this private chat"),
+        f"`{status_user_to_edit['psn_online_id']}`\n\n" +
+        f"Added by [you](tg://user?id={user_id}) in " +
+        (f"the _{group_name}_ group" if group_name else "this private chat"),
         parse_mode=ParseMode.MARKDOWN_V2
     ))
     keyboard = [[
@@ -238,9 +238,9 @@ def edit(update, context):
         ),
     ]]
     context.user_data["messages"].append(context.bot.send_message(
-        context.user_data["user_id"],
+        user_id,
         "Enter the new *display name* for your status user (currently set as "
-        f"*{context.user_data['status_user']['display_name']}*)",
+        f"*{status_user_to_edit['display_name']}*)",
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=InlineKeyboardMarkup(keyboard)
     ))
@@ -250,12 +250,16 @@ def process_display_name(update, context):
     # Here we have to ensure that the display name that the user has chosen is:
     # not empty, but also is unique relative to where they are trying to add it
     is_callback = False
-    chat_id = context.user_data.get("chat_id")
     if update.callback_query:
         is_callback = True
         update = update.callback_query
-        display_name = update.data
+        new_display_name = update.data
         update.answer()
+
+    chat_id = context.user_data.get("chat_id")
+    user_id = context.user_data.get("user_id")
+    group_name = context.user_data.get("group_name")
+    status_user_to_edit = context.user_data.get("status_user_to_modify")
 
     keyboard = [[
         InlineKeyboardButton(
@@ -269,9 +273,9 @@ def process_display_name(update, context):
     ]]
     if not is_callback:
         context.user_data["messages"].append(update.message)
-        display_name = update.message.text.strip()
-    
-        if not display_name:
+        new_display_name = update.message.text.strip()
+
+        if not new_display_name:
             context.user_data["messages"].append(update.message.reply_text(
                 "You did not provide a valid display name. Please enter a "
                 "unique display name",
@@ -279,25 +283,24 @@ def process_display_name(update, context):
                 quote=True
             ))
             return EDITING_DISPLAY_NAME
-        elif display_name == context.user_data["status_user"]["display_name"]:
+        elif new_display_name == status_user_to_edit["display_name"]:
             context.user_data["messages"].append(update.message.reply_text(
                 "The display name you entered is the same as the previously "
-                "set display name. Please enter a new display name",
+                "set display name. Please enter a new display name or skip "
+                "this entry",
                 reply_markup=InlineKeyboardMarkup(keyboard),
                 quote=True
             ))
             return EDITING_DISPLAY_NAME
-        display_name_exists = DBConnection().fetchone(
-            SELECT_WHERE.format(
-                "1", "StatusUsers",
-                f"telegramChatID = {chat_id} AND displayName = '{display_name}'"
-            )
+
+        users_with_the_same_name = DBConnection().count_documents(
+            "statususers",
+            {"chat_id": chat_id, "display_name": new_display_name}
         )
-        if display_name_exists:
+        if users_with_the_same_name > 0:
             context.user_data["messages"].append(update.message.reply_text(
-                f"Somebody with that display name already exists in the " + 
-                (f"the _{context.user_data['group_name']}_ group" 
-                if context.user_data.get("group_name") else 
+                "Somebody with that display name already exists in the " + 
+                (f"the _{group_name}_ group" if group_name else 
                 "this private chat") +
                 "'s status. Please enter a unique display name",
                 reply_markup=InlineKeyboardButton(keyboard),
@@ -306,12 +309,13 @@ def process_display_name(update, context):
             ))
             return EDITING_DISPLAY_NAME
 
-    if is_callback and display_name == "skip_display_name":
-        status_msg_prefix = "Skipped editting your display name"
+    if is_callback and new_display_name == "skip_display_name":
+        display_name_edit_msg = "Skipped editting your display name"
     else:
-        status_msg_prefix = ("Great! Your display name has been set as "
-                             f"*{display_name}*")
-        context.user_data["status_user"]["display_name"] = display_name
+        display_name_edit_msg = (
+            f"Great! Your display name has been set as *{new_display_name}*"
+        )
+        status_user_to_edit["display_name"] = new_display_name
 
     keyboard = [
         [
@@ -325,7 +329,7 @@ def process_display_name(update, context):
             ),
         ]
     ]
-    if context.user_data["status_user"]["xbox_gamertag"]:
+    if status_user_to_edit["xbox_gamertag"]:
         keyboard.append([
             InlineKeyboardButton(
                 f"{values.CONTROLLER_EMOJI} DISCONNECT XBOX LIVE ACCOUNT",
@@ -337,17 +341,15 @@ def process_display_name(update, context):
         old_message.delete()
 
     context.user_data["messages"].append(context.bot.send_message(
-        context.user_data["user_id"],
-        status_msg_prefix,
-        parse_mode=ParseMode.MARKDOWN
+        user_id, display_name_edit_msg, parse_mode=ParseMode.MARKDOWN
     ))
 
     context.user_data["messages"].append(context.bot.send_message(
-        context.user_data["user_id"],
+        user_id,
         "Enter the new *Xbox Gamertag* (currently " + 
-        (f"set as *{context.user_data['status_user']['xbox_gamertag']}*)"
-            if context.user_data['status_user']['xbox_gamertag'] else
-            "not set as anything)"),
+        (f"set as *{status_user_to_edit['xbox_gamertag']}*)"
+         if status_user_to_edit['xbox_gamertag'] else
+         "not set as anything)"),
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN
     ))
@@ -361,7 +363,10 @@ def process_xbox_gamertag(update, context):
         update = update.callback_query
         xbox_gamertag = update.data
         update.answer()
-    
+
+    user_id = context.user_data.get("user_id")
+    status_user_to_edit = context.user_data.get("status_user_to_modify")
+
     keyboard = [
         [
             InlineKeyboardButton(
@@ -374,7 +379,7 @@ def process_xbox_gamertag(update, context):
             ),
         ]
     ]
-    if context.user_data["status_user"]["xbox_gamertag"]:
+    if status_user_to_edit["xbox_gamertag"]:
         keyboard.append([
             InlineKeyboardButton(
                 f"{values.CONTROLLER_EMOJI} DISCONNECT XBOX LIVE ACCOUNT",
@@ -393,7 +398,7 @@ def process_xbox_gamertag(update, context):
                 quote=True
             ))
             return EDITING_XBOX_GAMERTAG
-        elif xbox_gamertag == context.user_data["status_user"]["xbox_gamertag"]:
+        elif xbox_gamertag == status_user_to_edit["xbox_gamertag"]:
             context.user_data["messages"].append(update.message.reply_text(
                 "The Xbox Gamertag you entered is the same as the previously "
                 "set Xbox Gamertag. Please enter a new Xbox Gamertag",
@@ -405,12 +410,12 @@ def process_xbox_gamertag(update, context):
     # Now we simply want to insert the Xbox Gamertag and the Xbox ID in the
     # corresponding record in the db.
     if is_callback and xbox_gamertag == "disconnect":
-        context.user_data["status_user"]["xbox_gamertag"] = None
-        context.user_data["status_user"]["xbox_account_id"] = None
-        status_msg_prefix = ("Great! You have disconnected your Xbox Gamertag "
-                             "from this status user")
+        status_user_to_edit["xbox_gamertag"] = None
+        status_user_to_edit["xbox_account_id"] = None
+        xbox_modification_msg = ("Great! You have disconnected your Xbox "
+                                 "Gamertag from this status user")
     elif is_callback and xbox_gamertag == "skip_xbox_gamertag":
-        status_msg_prefix = "Skipped editing your Xbox Gamertag"
+        xbox_modification_msg = "Skipped editing your Xbox Gamertag"
     else:
         context.user_data["messages"].append(update.message.reply_text(
             f"{values.RAISED_HAND_EMOJI} Please hold as we process your Xbox "
@@ -418,7 +423,7 @@ def process_xbox_gamertag(update, context):
             quote=True
         ))
         try:
-            context.user_data["status_user"]["xbox_account_id"] = asyncio.run(
+            status_user_to_edit["xbox_account_id"] = asyncio.run(
                 ApisWrapper().get_account_id_from_gamertag(xbox_gamertag)
             )
         except ClientResponseError as cre:
@@ -430,8 +435,8 @@ def process_xbox_gamertag(update, context):
                 )
                 return EDITING_XBOX_GAMERTAG
         
-        context.user_data["status_user"]["xbox_gamertag"] = xbox_gamertag
-        status_msg_prefix = ("Great! Your Xbox Gamertag has been set as "
+        status_user_to_edit["xbox_gamertag"] = xbox_gamertag
+        xbox_modification_msg = ("Great! Your Xbox Gamertag has been set as "
                              f"*{xbox_gamertag}*")
 
     while len(context.user_data["messages"]) > 3:
@@ -450,7 +455,7 @@ def process_xbox_gamertag(update, context):
             ),
         ]
     ]
-    if context.user_data["status_user"]["psn_online_id"]:
+    if status_user_to_edit["psn_online_id"]:
         keyboard.append([
             InlineKeyboardButton(
                 f"{values.CONTROLLER_EMOJI} DISCONNECT PSN ACCOUNT",
@@ -458,15 +463,15 @@ def process_xbox_gamertag(update, context):
             )
         ])
     context.user_data["messages"].append(context.bot.send_message(
-        context.user_data["user_id"],
-        status_msg_prefix,
+        user_id,
+        xbox_modification_msg,
         parse_mode=ParseMode.MARKDOWN
     ))
     context.user_data["messages"].append(context.bot.send_message(
-        context.user_data["user_id"],
+        user_id,
         "Now enter the new *PSN Online ID* (currently " + 
-        (f"set as *{context.user_data['status_user']['psn_online_id']}*)"
-        if context.user_data['status_user']['psn_online_id'] else
+        (f"set as *{status_user_to_edit['psn_online_id']}*)"
+        if status_user_to_edit['psn_online_id'] else
         "not set as anything)"),
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN
@@ -480,6 +485,10 @@ def process_psn_online_id(update, context):
         update = update.callback_query
         psn_online_id = update.data
         update.answer()
+
+    group_name = context.user_data.get("group_name")
+    user_id = context.user_data.get("user_id")
+    status_user_to_edit = context.user_data.get("status_user_to_modify")
     
     keyboard = [
         [
@@ -493,7 +502,7 @@ def process_psn_online_id(update, context):
             ),
         ],
     ]
-    if context.user_data["status_user"]["psn_online_id"]:
+    if status_user_to_edit["psn_online_id"]:
         keyboard.append([
             InlineKeyboardButton(
                 f"{values.CONTROLLER_EMOJI} DISCONNECT PSN ACCOUNT",
@@ -511,7 +520,7 @@ def process_psn_online_id(update, context):
                 quote=True
             ))
             return EDITING_PSN_ONLINE_ID
-        elif psn_online_id == context.user_data["status_user"]["psn_online_id"]:
+        elif psn_online_id == status_user_to_edit["psn_online_id"]:
             context.user_data["messages"].append(update.message.reply_text(
                 "The PSN Online ID you entered is the same as the previously "
                 "set PSN Online ID. Please enter a new PSN Online ID",
@@ -523,19 +532,19 @@ def process_psn_online_id(update, context):
     # Now we simply want to update the PSN Online ID in the corresponding
     # record in the db.
     if is_callback and psn_online_id == "disconnect":
-        context.user_data['status_user']['psn_online_id'] = None
-        context.user_data['status_user']['psn_account_id'] = None
-        status_msg_prefix = ("Great! You have disconnected your PSN Online "
-                             "ID from this status user")
+        status_user_to_edit['psn_online_id'] = None
+        status_user_to_edit['psn_account_id'] = None
+        psn_modification_msg = ("Great! You have disconnected your PSN Online "
+                                "ID from this status user")
     elif is_callback and psn_online_id == "skip_psn_online_id":
-        status_msg_prefix = "Skipped editing your PSN Online ID"
+        psn_modification_msg = "Skipped editing your PSN Online ID"
     else:
         context.user_data["messages"].append(update.message.reply_text(
             f"{values.RAISED_HAND_EMOJI} Please hold as we process your PSN "
             "Online ID. This might take around 5 seconds"
         ))
         try:
-            context.user_data['status_user']['psn_account_id'] = asyncio.run(
+            status_user_to_edit['psn_account_id'] = asyncio.run(
                 ApisWrapper().get_account_id_from_online_id(psn_online_id)
             )
         except ClientResponseError as cre:
@@ -547,9 +556,9 @@ def process_psn_online_id(update, context):
                 )
                 return EDITING_PSN_ONLINE_ID
 
-        context.user_data['status_user']['psn_online_id'] = psn_online_id
-        status_msg_prefix = ("Great! Your PSN Online ID has been set as "
-                             f"*{psn_online_id}*")
+        status_user_to_edit['psn_online_id'] = psn_online_id
+        psn_modification_msg = ("Great! Your PSN Online ID has been set as "
+                                f"*{psn_online_id}*")
 
     while len(context.user_data["messages"]) > 4:
         old_message = context.user_data["messages"].pop()
@@ -563,32 +572,27 @@ def process_psn_online_id(update, context):
         [
             InlineKeyboardButton(
                 f"{values.LEFT_POINTING_EMOJI} GO BACK TO YOUR STATUS USER",
-                callback_data=f"{context.user_data['status_user']['id']}"
+                callback_data=f"{status_user_to_edit['_id']}"
             )
         ]
     ]
 
-    context.bot.send_message(
-        context.user_data["user_id"],
-        status_msg_prefix,
-        parse_mode=ParseMode.MARKDOWN
-    )
+    context.bot.send_message(user_id, psn_modification_msg,
+                             parse_mode=ParseMode.MARKDOWN)
 
     context.bot.send_message(
-        context.user_data["user_id"],
+        user_id,
         f"*You've successfully updated your status user\.* Below are the "
         "details of your new status user:\n\n"
         "__Display Name__\n"
-        f"`{context.user_data['status_user']['display_name']}`\n\n"
+        f"`{status_user_to_edit['display_name']}`\n\n"
         "__Xbox Gamertag__\n"
-        f"`{context.user_data['status_user']['xbox_gamertag']}`\n\n"
+        f"`{status_user_to_edit['xbox_gamertag']}`\n\n"
         "__PSN Online ID__"
-        f"\n`{context.user_data['status_user']['psn_online_id']}`\n\n"
+        f"\n`{status_user_to_edit['psn_online_id']}`\n\n"
         "Added by [you]"
-        f"(tg://user?id={context.user_data['status_user']['user_id']}) in " +
-        (f"the _{context.user_data['group_name']}_ group"
-         if context.user_data.get("group_name") else 
-         "this private chat"),
+        f"(tg://user?id={status_user_to_edit['user_id']}) in " +
+        (f"the _{group_name}_ group" if group_name else "this private chat"),
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN_V2
     )
@@ -596,10 +600,12 @@ def process_psn_online_id(update, context):
     return MAIN_MENU
 
 def process_edited_status_user(context):
-    if (not context.user_data["status_user"]["xbox_gamertag"] and
-        not context.user_data["status_user"]["psn_online_id"]):
-        display_name = context.user_data["status_user"]["display_name"]
-        id_to_delete = context.user_data['status_user']['id']
+    user_id = context.user_data.get("user_id")
+    status_user_to_edit = context.user_data.get("status_user_to_modify")
+    status_user_to_edit['display_name'] = status_user_to_edit.get("display_name")
+
+    if not status_user_to_edit["xbox_gamertag"] and not status_user_to_edit["psn_online_id"]:
+        group_name = context.user_data.get("group_name")
         keyboard = [
             [
                 InlineKeyboardButton(
@@ -607,58 +613,48 @@ def process_edited_status_user(context):
                     callback_data="cancel"
                 ),
                 InlineKeyboardButton(
-                    f"{values.CHECKMARK_EMOJI} DELETE {display_name}",
-                    callback_data=f"confirm_delete_{id_to_delete}"
+                    f"{values.CHECKMARK_EMOJI} DELETE {status_user_to_edit['display_name']}",
+                    callback_data=f"confirm_delete_{status_user_to_edit['_id']}"
                 ),
             ]
         ]
         context.user_data["messages"].append(context.bot.send_message(
-            context.user_data.get("user_id"), 
+            user_id, 
             "Warning! Since you have no Xbox Gamertag or PSN Online ID "
-            "connected to this account, "
-            f"*{context.user_data['status_user']['display_name']}* will be "
-            "deleted from " + (f"the _{context.user_data['group_name']}_ group"
-                               if context.user_data.get("group_name") else 
-                               "this private chat") + 
-            "\n\nIf you didn't mean to do this, you can cancel your changes "
+            f"connected to the `{status_user_to_edit['display_name']}` status user. It "
+            f"will be deleted from " +
+            f"the _{group_name}_ group" if group_name else "this private chat"
+            + "\n\nIf you didn't mean to do this, you can cancel your changes "
             "below, or confirm it, and your status user will be deleted",
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=InlineKeyboardMarkup(keyboard)
         ))
         return DELETING_EMPTY_STATUS_USER
 
-    display_name = get_stringized_sql_value(
-        context.user_data["status_user"]["display_name"]
+    DBConnection().update_one(
+        "statususers", 
+        {"_id": ObjectId(status_user_to_edit["_id"])},
+        {"$set": {
+            "display_name": status_user_to_edit["display_name"],
+            "xbox_gamertag": status_user_to_edit["xbox_gamertag"],
+            "xbox_account_id": status_user_to_edit["xbox_account_id"],
+            "psn_online_id": status_user_to_edit["psn_online_id"],
+            "psn_account_id": status_user_to_edit["psn_account_id"]
+        }}
     )
-    xbox_gamertag = get_stringized_sql_value(
-        context.user_data["status_user"]["xbox_gamertag"]
-    )
-    psn_online_id = get_stringized_sql_value(
-        context.user_data["status_user"]["psn_online_id"]
-    )
-    xbox_account_id = get_stringized_sql_value(
-        context.user_data["status_user"]["xbox_account_id"]
-    )
-    psn_account_id = get_stringized_sql_value(
-        context.user_data["status_user"]["psn_account_id"]
-    )
-    DBConnection().execute(UPDATE_WHERE.format(
-        "StatusUsers",
-        f"displayName = {display_name}, xboxGamertag = {xbox_gamertag}, "
-        f"xboxAccountID = {xbox_account_id}, psnOnlineID = {psn_online_id}, "
-        f"psnAccountID = {psn_account_id}",
-        f"id = {context.user_data['status_user']['id']}" 
-    ))
 
 def cancel(update, context):
     if update.callback_query:
         update = update.callback_query
         update.answer()
+
+    user_id = context.user_data.get("user_id")
+    status_user_to_edit = context.user_data.get("status_user_to_modify")
     keyboard = [
         [
             InlineKeyboardButton(
                 f"{values.LEFT_POINTING_EMOJI} GO BACK TO YOUR STATUS USER",
-                callback_data=f"{context.user_data['status_user']['id']}"
+                callback_data=f"{status_user_to_edit['_id']}"
             )
         ]
     ]
@@ -667,7 +663,7 @@ def cancel(update, context):
         old_message.delete()
 
     context.bot.send_message(
-        context.user_data["user_id"],
+        user_id,
         f"{values.CANCELLED_EMOJI} Cancelled the process of editing your "
         "status user",
         reply_markup=InlineKeyboardMarkup(keyboard)
@@ -685,29 +681,34 @@ def delete(update, context):
         update = update.callback_query
         update.answer()
 
-    id_to_delete = update.data.split("_")[-1]
+    group_name = context.user_data.get("group_name")
+    status_user_to_delete = context.user_data["status_user_to_modify"]
+
     keyboard = [
         [
             InlineKeyboardButton(
                 f"{values.LEFT_POINTING_EMOJI} GO BACK",
-                callback_data=f"{id_to_delete}"
+                callback_data=f"{status_user_to_delete['_id']}"
             ),
             InlineKeyboardButton(
                 f"{values.CHECKMARK_EMOJI} CONFIRM",
-                callback_data=f"confirm_delete_{id_to_delete}"
+                callback_data=f"confirm_delete_{status_user_to_delete['_id']}"
             )
         ]
     ]
-    if context.user_data.get("group_name"):
-        status_user_msg = ("Confirm deletion of the status user "
-            f"*{context.user_data['status_user']['display_name']}* in the "
-            f"_{context.user_data['group_name']}_ group")
+    if group_name != None:
+        status_user_deletion_msg = (
+            "Confirm deletion of the status user "
+            f"*{status_user_to_delete['display_name']}* in the _{group_name}_ "
+            "group")
     else:
-        status_user_msg = ("Confirm deletion of the status user "
-            f"*{context.user_data['status_user']['display_name']}* in this "
-            "private chat")
+        status_user_deletion_msg = (
+            f"Confirm deletion of the status user "
+            f"*{status_user_to_delete['display_name']}* in this private chat"
+        )
+
     update.edit_message_text(
-        status_user_msg, reply_markup=InlineKeyboardMarkup(keyboard),
+        status_user_deletion_msg, reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN
     )
 
@@ -718,8 +719,10 @@ def confirm_delete(update, context):
         update = update.callback_query
         update.answer()
 
-    display_name = context.user_data["status_user"]["display_name"]
-    id_to_delete = update.data.split("_")[-1]
+    
+    group_name = context.user_data.get("group_name")
+    status_user_to_delete = context.user_data["status_user_to_modify"]
+
     keyboard = [
         [
             InlineKeyboardButton(
@@ -728,34 +731,35 @@ def confirm_delete(update, context):
             ),
         ]
     ]
-    DBConnection().execute(DELETE_WHERE.format(
-        "StatusUsers", f"id = {id_to_delete}"
-    ))
 
-    if context.user_data.get("group_name"):
-        status_user_msg = (
-            f"Deleted *{display_name}* from "
-            f"the _{context.user_data['group_name']}_ group"
+    DBConnection().delete_one("statususers",
+                              {"_id": ObjectId(status_user_to_delete['_id'])})
+
+    if group_name != None:
+        status_user_deletion_msg = (
+            f"Deleted *{status_user_to_delete['display_name']}* from the "
+            f"_{group_name}_ group"
         )
     else:
-        status_user_msg = (f"Deleted *{display_name}* from the private chat")
+        status_user_deletion_msg = (
+            f"Deleted *{status_user_to_delete['display_name']}* from the "
+            "private chat"
+        )
 
-    if context.user_data.get("group_name"):
+    if group_name != None:
+        user_username = update.from_user['username']
         mention = (
-            f"[{update.from_user['username']}]"
-            f"(tg://user?id={context.user_data['user_id']})"
+            f"[{user_username}](tg://user?id={context.user_data['user_id']})"
         )
         context.bot.send_message(
             context.user_data["chat_id"],
-            f"*{display_name}* has been removed from the /status command by "
-            f"{mention}",
+            f"*{status_user_to_delete['display_name']}* has been removed from "
+            f"the /status command by {mention}",
             parse_mode=ParseMode.MARKDOWN
         )
 
-    update.edit_message_text(status_user_msg,
-        reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode=ParseMode.MARKDOWN)
+    update.edit_message_text(status_user_deletion_msg,
+                             reply_markup=InlineKeyboardMarkup(keyboard),
+                             parse_mode=ParseMode.MARKDOWN)
 
-    context.user_data.clear()
-
-    return DELETING_STATUS_USER
+    return MAIN_MENU

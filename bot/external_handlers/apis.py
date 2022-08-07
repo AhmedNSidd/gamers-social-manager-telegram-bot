@@ -6,14 +6,13 @@ import psnawp_api
 import requests
 
 from general import values
-from general.db import DBConnection, SELECT, UPDATE_WHERE
+from general.db import DBConnection, UPDATE_WHERE
 from models.player_presence import PlayerPresence
 from xbox.webapi.api.client import XboxLiveClient
 from xbox.webapi.api.provider.presence import PresenceLevel
 from xbox.webapi.authentication.manager import AuthenticationManager
 from xbox.webapi.authentication.models import OAuth2TokenResponse
 from xbox.webapi.scripts import REDIRECT_URI
-
 
 
 class PsnApi:
@@ -26,27 +25,31 @@ class PsnApi:
         return cls.instance
 
     def __init__(self):
-        self._initialize_credentials()
-        self.client = psnawp_api.psnawp.PSNAWP(self.credentials["npsso"])
-        self._check_expiry()
+        self.client = psnawp_api.psnawp.PSNAWP(self._get_psn_npsso())
+        self._check_credentials_expiry()
 
-    def _initialize_credentials(self):
-        credentials = DBConnection().fetchone(SELECT.format(
-            "psnNpsso", "Credentials"))
+    def _get_psn_npsso(self):
+        credentials = DBConnection().find_one("credentials",
+                                              {"platform": "psn"})
         if not credentials:
             raise Exception("PSN credentials have not been set")
 
-        self.credentials = {"npsso": credentials[0]}
+        return credentials["npsso"]
 
-    def _check_expiry(self):
+    def _check_credentials_expiry(self):
         days_to_expire = int(self.client.authenticator.oauth_token_response['refresh_token_expires_in']/86400)
         if days_to_expire <= 0:
             raise Exception("PSN credentials need to be renewed")
         if days_to_expire <= 7:
             for admin_id in values.ADMIN_LIST:
-                requests.post(url=f"https://api.telegram.org/bot{values.TOKEN}/sendMessage",
-                              data={"chat_id": admin_id,
-                              "text": "Warning: The Playstation npsso is expiring in less than 7 days. Please update it soon."})
+                requests.post(
+                    url=f"https://api.telegram.org/bot{values.TOKEN}/sendMessage",
+                    data={
+                        "chat_id": admin_id,
+                        "text": "Warning: The Playstation npsso is expiring "
+                        "in less than 7 days. Please update it soon."
+                    }
+                )
 
     async def get_account_id_from_online_id(self, session, psn_online_id):
         """
@@ -60,7 +63,7 @@ class PsnApi:
         url = f"https://us-prof.np.community.playstation.net/userProfile/v1/users/{psn_online_id}/profile2"
         async with session.get(url, headers=headers, params=params) as res:
             res.raise_for_status()
-            return (await res.json())["profile"]["accountId"]
+            return int((await res.json())["profile"]["accountId"])
 
     async def get_players_presences(self, session, account_ids, online_ids):
         """
@@ -154,26 +157,26 @@ class XboxLiveApi:
         self._check_expiry()
 
     def _initialize_credentials(self):
-        credentials = DBConnection().fetchone(SELECT.format(
-            "xboxClientID, xboxClientSecret, xboxTokenType, xboxExpiresIn, "
-            "xboxScope, xboxAccessToken, xboxRefreshToken, xboxUserID, "
-            "xboxIssued", "Credentials"))
-        if not credentials:
+        self.credentials = DBConnection().find_one("credentials",
+                                                   {"platform": "xbox"})
+        print(self.credentials)
+        if not self.credentials:
             raise Exception("Xbox Live credentials have not been set")
-
-        self.credentials =  {
-            "client_id": credentials[0],
-            "client_secret": credentials[1],
-            "tokens": {
-                "token_type": credentials[2],
-                "expires_in": credentials[3],
-                "scope": credentials[4],
-                "access_token": credentials[5],
-                "refresh_token": credentials[6],
-                "user_id": credentials[7],
-                "issued": credentials[8] 
-            }
-        }
+    
+    def _check_expiry(self):
+        days_to_expire = (values.XBOX_CLIENT_SECRET_EXPIRY_DATE - datetime.date.today()).days
+        if days_to_expire <= 0:
+            raise Exception("Xbox Live credentials need to be renewed")
+        elif days_to_expire < 7:
+            for admin_id in values.ADMIN_LIST:
+                requests.post(
+                    url=f"https://api.telegram.org/bot{values.TOKEN}/sendMessage",
+                    data={
+                        "chat_id": admin_id,
+                        "text": "Warning: The Xbox Secret Key is expiring in "
+                        "less than 7 days. Please update it soon."
+                    }
+                )
     
     async def _refresh_tokens(self, auth_mgr):
         auth_mgr.oauth = OAuth2TokenResponse.parse_raw(
@@ -184,15 +187,13 @@ class XboxLiveApi:
             raise Exception("Error: Could not refresh tokens.")
 
         self.credentials["tokens"] = json.loads(auth_mgr.oauth.json())
-        DBConnection().execute(UPDATE_WHERE.format("Credentials",
-            f"xboxTokenType = '{self.credentials['tokens']['token_type']}', "
-            f"xboxExpiresIn = {self.credentials['tokens']['expires_in']}, "
-            f"xboxScope = '{self.credentials['tokens']['scope']}', "
-            f"xboxAccessToken = '{self.credentials['tokens']['access_token']}', "
-            f"xboxRefreshToken = '{self.credentials['tokens']['refresh_token']}', "
-            f"xboxUserID = '{self.credentials['tokens']['user_id']}', "
-            f"xboxIssued = '{self.credentials['tokens']['issued']}'", 
-            f"xboxClientID = '{self.credentials['client_id']}'"))
+        DBConnection().update_one(
+            "credentials",
+            {"platform": "xbox"},
+            {"$set": {
+                "tokens": self.credentials["tokens"]
+            }}
+        )
 
     async def get_account_id_from_gamertag(self, session, gamertag):
         """
@@ -206,7 +207,7 @@ class XboxLiveApi:
         await self._refresh_tokens(auth_mgr)
         xbl_client = XboxLiveClient(auth_mgr)
         id = (await xbl_client.profile.get_profile_by_gamertag(gamertag)).profile_users[0].id
-        return id
+        return int(id)
 
     async def get_players_presences(self, session, account_ids, gamertags):
         """
@@ -222,9 +223,9 @@ class XboxLiveApi:
             session, self.credentials["client_id"],
             self.credentials["client_secret"], REDIRECT_URI
         )
-
+        print("pepepe")
         await self._refresh_tokens(auth_mgr)
-
+        print("popo")
         xbl_client = XboxLiveClient(auth_mgr)
         resp = await xbl_client.session.post(
             "https://userpresence.xboxlive.com/users/batch",
@@ -260,16 +261,6 @@ class XboxLiveApi:
                 players_presences.append(None)
 
         return players_presences
-
-    def _check_expiry(self):
-        days_to_expire = (values.XBOX_CLIENT_SECRET_EXPIRY_DATE - datetime.date.today()).days
-        if days_to_expire <= 0:
-            raise Exception("Xbox Live credentials need to be renewed")
-        elif days_to_expire < 7:
-            for admin_id in values.ADMIN_LIST:
-                requests.post(url=f"https://api.telegram.org/bot{values.TOKEN}/sendMessage",
-                              data={"chat_id": admin_id,
-                              "text": "Warning: The Xbox Secret Key is expiring in less than 7 days. Please update it soon."})
 
     @staticmethod
     def _parse_main_device(resp):

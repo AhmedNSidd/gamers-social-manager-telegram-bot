@@ -91,13 +91,11 @@ def process_display_name(update, context):
         return TYPING_DISPLAY_NAME
     
     # Check if an existing display name is present in the group/private chat.
-    display_name_exists = DBConnection().fetchone(
-        SELECT_WHERE.format(
-            "1", "StatusUsers",
-            f"telegramChatID = {chat_id} AND displayName = '{display_name}'"
-        )
+    users_with_the_same_name = DBConnection().count_documents(
+        "statususers",
+        {"chat_id": chat_id, "display_name": display_name}
     )
-    if display_name_exists:
+    if users_with_the_same_name > 0:
         context.user_data["messages"].append(update.message.reply_text(
             f"Somebody with that display name already exists in " +
             (f"the _{context.user_data['group_name']}_ group" 
@@ -293,6 +291,8 @@ def process_psn_online_id(update, context):
         old_message = context.user_data["messages"].pop()
         old_message.delete()
 
+    del context.user_data["messages"]
+
     ret = process_new_status_user(context)
     if type(ret) == int:
         return ret
@@ -334,9 +334,6 @@ def process_psn_online_id(update, context):
     return ConversationHandler.END
 
 def process_new_status_user(context):
-    user_id = context.user_data.get("user_id")
-    chat_id = context.user_data.get("chat_id")
-
     if (not context.user_data.get("xbox_gamertag") and
         not context.user_data.get("psn_online_id")):
         keyboard = [[
@@ -350,7 +347,7 @@ def process_new_status_user(context):
             )
         ]]
         context.user_data["messages"].append(context.bot.send_message(
-            user_id,
+            context.user_data.get("user_id"),
             "Sorry! You can not add a status user with no gaming IDs. We "
             "will ask you for your gaming IDs again. Please enter at least "
             "one, or choose to cancel this process\n\nNow enter your *Xbox "
@@ -360,29 +357,10 @@ def process_new_status_user(context):
         ))
         return TYPING_XBOX_GAMERTAG
 
-    display_name = get_stringized_sql_value(
-        context.user_data.get("display_name")
+    DBConnection().insert_one(
+        "statususers",
+        context.user_data
     )
-    xbox_gamertag = get_stringized_sql_value(
-        context.user_data.get("xbox_gamertag")
-    )
-    psn_online_id = get_stringized_sql_value(
-        context.user_data.get("psn_online_id")
-    )
-    xbox_account_id = get_stringized_sql_value(
-        context.user_data.get("xbox_account_id")
-    )
-    psn_account_id = get_stringized_sql_value(
-        context.user_data.get("psn_account_id")
-    )
-    
-    DBConnection().execute(INSERT.format(
-        "StatusUsers (telegramChatID, telegramUserID, displayName, "
-        "xboxGamertag, xboxAccountID, psnOnlineID, psnAccountID)",
-        f"({chat_id}, {user_id}, {display_name}, {xbox_gamertag}, "
-        f"{xbox_account_id}, {psn_online_id}, {psn_account_id})"
-    ))
-
 
 def cancel(update, context):
     if update.callback_query:

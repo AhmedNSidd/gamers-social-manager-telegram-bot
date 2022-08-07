@@ -18,8 +18,8 @@ importlib-metadata==4.11.4
 ms-cv==0.1.1
 multidict==6.0.2
 PSNAWP==2021.20.6
-psycopg2==2.9.3
 pydantic==1.9.1
+pymongo==4.2.0
 python-dotenv==0.20.0
 python-telegram-bot==13.12
 pytz==2022.1
