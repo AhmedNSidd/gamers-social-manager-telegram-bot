@@ -1,18 +1,12 @@
 import asyncio
 import datetime
 import humanize
-import json
 import psnawp_api
 import requests
 
-from general import values
-from general.db import DBConnection, UPDATE_WHERE
+from common import values
+from common.db import DBConnection
 from models.player_presence import PlayerPresence
-from xbox.webapi.api.client import XboxLiveClient
-from xbox.webapi.api.provider.presence import PresenceLevel
-from xbox.webapi.authentication.manager import AuthenticationManager
-from xbox.webapi.authentication.models import OAuth2TokenResponse
-from xbox.webapi.scripts import REDIRECT_URI
 
 
 class PsnApi:
