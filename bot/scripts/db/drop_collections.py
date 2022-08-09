@@ -7,7 +7,7 @@ import sys
 sys.path.append(pathlib.PurePath(pathlib.Path(__file__).parent.absolute(),
                                  "../..").__str__())
                                 
-from general.db import DBConnection, DROP_CASCADE, SELECT_WHERE_ORDER_BY
+from general.db import DBConnection
 
 
 def delete_tables():

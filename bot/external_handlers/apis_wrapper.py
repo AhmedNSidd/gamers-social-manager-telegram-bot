@@ -4,7 +4,6 @@ import asyncio
 from .apis import XboxLiveApi, PsnApi
 from general.db import DBConnection
 from models.user_status import UserStatus
-from typing import List, Dict
 
 
 # What do we want to call this class and this file?

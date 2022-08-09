@@ -3,8 +3,7 @@ import asyncio
 from aiohttp import ClientResponseError
 from external_handlers.apis_wrapper import ApisWrapper
 from general import values
-from general.db import DBConnection, SELECT_WHERE, INSERT
-from general.utils import get_stringized_sql_value
+from general.db import DBConnection
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
 

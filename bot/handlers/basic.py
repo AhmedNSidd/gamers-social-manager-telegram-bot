@@ -33,11 +33,6 @@ def start(update, context):
     update.message.reply_text(start_msg, reply_markup=keyboard_markup,
                               parse_mode=ParseMode.MARKDOWN)
 
-def test(update, context):
-    """Send a message when the command /help is issued."""
-    print(update)
-    print(update.message.chat.permissions)
-
 def help_message(update, context):
     """Send a message when the command /help is issued."""
     update.message.reply_text(values.help_message)

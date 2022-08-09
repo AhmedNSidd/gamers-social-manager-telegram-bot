@@ -1,6 +1,5 @@
 from telegram import ParseMode
-from general.utils import create_sql_array
-from general.db import INSERT, DBConnection, SELECT_WHERE, UPDATE_WHERE
+from general.db import DBConnection
 
 def notify(update, context):
     """

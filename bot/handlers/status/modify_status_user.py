@@ -4,8 +4,7 @@ import asyncio
 from aiohttp import ClientResponseError
 from bson.objectid import ObjectId
 from general import values
-from general.db import UPDATE_WHERE, DBConnection, SELECT_WHERE, DELETE_WHERE
-from general.utils import get_stringized_sql_value
+from general.db import DBConnection
 from external_handlers.apis_wrapper import ApisWrapper
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
@@ -91,7 +90,6 @@ def start(update, context):
     else:
         my_status_users = {}
         for status_user in current_users_status_users:
-            print(status_user)
             my_status_users[status_user["_id"]] = status_user["display_name"]
     
         other_status_users = {}

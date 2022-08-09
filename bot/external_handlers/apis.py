@@ -6,7 +6,7 @@ import psnawp_api
 import requests
 
 from general import values
-from general.db import DBConnection, UPDATE_WHERE
+from general.db import DBConnection
 from models.player_presence import PlayerPresence
 from xbox.webapi.api.client import XboxLiveClient
 from xbox.webapi.api.provider.presence import PresenceLevel
@@ -159,7 +159,6 @@ class XboxLiveApi:
     def _initialize_credentials(self):
         self.credentials = DBConnection().find_one("credentials",
                                                    {"platform": "xbox"})
-        print(self.credentials)
         if not self.credentials:
             raise Exception("Xbox Live credentials have not been set")
     
@@ -223,9 +222,7 @@ class XboxLiveApi:
             session, self.credentials["client_id"],
             self.credentials["client_secret"], REDIRECT_URI
         )
-        print("pepepe")
         await self._refresh_tokens(auth_mgr)
-        print("popo")
         xbl_client = XboxLiveClient(auth_mgr)
         resp = await xbl_client.session.post(
             "https://userpresence.xboxlive.com/users/batch",

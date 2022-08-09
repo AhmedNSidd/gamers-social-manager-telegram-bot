@@ -1,6 +1,5 @@
 from general import values
-from general.db import DBConnection, SELECT_WHERE, INSERT, UPDATE_WHERE
-from general.utils import create_sql_array, get_stringized_sql_value
+from general.db import DBConnection
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
 
