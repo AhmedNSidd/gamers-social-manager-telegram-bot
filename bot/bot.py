@@ -212,7 +212,6 @@ def main():
     dp.add_handler(CommandHandler("help", basic.help_message), 1)
     dp.add_handler(CommandHandler("f", basic.f), 1)
     dp.add_handler(CommandHandler("mf", basic.mf), 1)
-    dp.add_handler(CommandHandler("test", basic.test), 1)
 
     # dp.add_handler(CommandHandler("add_notify_user", notify.add_notify_user))
     # dp.add_handler(CommandHandler("del_notify_user", notify.del_notify_user))
