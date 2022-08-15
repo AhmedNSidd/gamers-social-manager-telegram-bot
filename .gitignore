@@ -1,5 +1,6 @@
 .env
 **/__pycache__
+**/.DS_Store
 # Ignore extraneous terraform files
 infrastructure/.terraform/
 infrastructure/.terraform.lock.hcl

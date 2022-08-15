@@ -1,9 +1,32 @@
-# Overview
+# Document Overview
 
-This document will go through the details of the infrastructure that was built
+This document will go through the details of the infrastructure that was used
 for the deployment of this application, and why I made some of the decisions I
 made in regards to the infrastructure tech stack.
 
+The technologies used that are relevant to the deployment of this application
+and building of this infrastructure are:
+
+- Docker
+- Terraform
+- GitHub Webhooks
+- AWS Elastic Compute Cloud (EC2)
+- Jenkins
+- DockerHub
+- AWS Elastic Container Service (ECS)
+- MongoDB Atlas
+
+# Design Overview
+
+This section will go through two designs:
+- Design of the infrastructure (built by Terraform)
+- Design for the CI/CD process
+
+## The Infrastructure
+
+*NOTE: This section will NOT explain why Terraform was used to build infrastructure. That decision is talked about [here]()*
+
+![infrastructure diagram](images/infrastructure_diagram.png)
 # IaC/Infrastructure as Code (Terraform)
 
 In order to build the infrastructure, I faced an option of either manually
@@ -43,3 +66,14 @@ the management tax that would have been added if I were to manually provision
 EC2 instances. Furthermore, I did some research that suggested that for my use
 case, the option of AWS Fargate would present with lower monthly costs due to
 resources not being wasted.
+
+
+
+# Attributions
+
+## Logos
+
+- [AWS Logo](https://en.wikipedia.org/wiki/File:Amazon_Web_Services_Logo.svg)
+- [Hashicorp and Terraform Logos](https://www.hashicorp.com/brand)
+- [MongoDB Atlas Logo](https://www.mongodb.com/brand-resources)
+- [MongoDB Database Logo](https://www.opc-router.de/wp-content/uploads/2021/03/mongodb_thumbnail.png)

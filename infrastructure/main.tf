@@ -263,8 +263,8 @@ data "aws_iam_policy_document" "assume_role_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs-task-execution-role-policy" {
-    role = "${aws_iam_role.ecs-task-execution-role.name}"
-    policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  role = "${aws_iam_role.ecs-task-execution-role.name}"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 resource "aws_ecs_service" "gsm-service" {
