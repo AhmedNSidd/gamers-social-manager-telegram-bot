@@ -1,7 +1,7 @@
 import os
 
 from pymongo import MongoClient
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote_plus
 
 
 CREATE_TABLE_IF_NOT_EXISTS = "CREATE TABLE IF NOT EXISTS {}"
@@ -39,8 +39,16 @@ class DBConnection:
                 unauthenticated_parsed_db_url.port
             )
         )
+        encoded_db_url = authenticated_parsed_db_url._replace(
+            netloc="{}:{}@{}:{}".format(
+                quote_plus(authenticated_parsed_db_url.username),
+                quote_plus(authenticated_parsed_db_url.password),
+                "localhost" if local else authenticated_parsed_db_url.hostname,
+                authenticated_parsed_db_url.port
+            )
+        )
 
-        self.db = MongoClient(authenticated_parsed_db_url.geturl())["gsm"]
+        self.db = MongoClient(encoded_db_url.geturl())["gsm"]
 
     def __del__(self):
         self.db.client.close()
