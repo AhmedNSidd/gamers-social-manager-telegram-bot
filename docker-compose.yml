@@ -4,9 +4,9 @@ services:
     image: mongo
     restart: always
     environment:
-        - MONGO_INITDB_DATABASE=${GSM_DB_USER_AND_DB}
-        - MONGO_INITDB_ROOT_USERNAME=${GSM_DB_USER_AND_DB}
-        - MONGO_INITDB_ROOT_PASSWORD=${GSM_DB_PASSWORD}
+        - MONGO_INITDB_DATABASE=${GSM_DB_USERNAME:?err}
+        - MONGO_INITDB_ROOT_USERNAME=${GSM_DB_USERNAME:?err}
+        - MONGO_INITDB_ROOT_PASSWORD=${GSM_DB_PASSWORD:?err}
     ports:
       - ${GSM_DB_PORT}:${GSM_DB_PORT}
     volumes:
@@ -19,11 +19,10 @@ services:
       - db
     environment:
       - GSM_TG_BOT_TOKEN=${GSM_TG_BOT_TOKEN:?err}
-      - GSM_DB_HOSTNAME=${GSM_DB_HOSTNAME}
-      - GSM_DB_USER_AND_DB=${GSM_DB_USER_AND_DB}
-      - GSM_DB_PASSWORD=${GSM_DB_PASSWORD}
-      - GSM_DB_PORT=${GSM_DB_PORT}
       - XBOX_CLIENT_SECRET_EXPIRY_DATE=${XBOX_CLIENT_SECRET_EXPIRY_DATE}
+      - GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD=${GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD:?err}
+      - GSM_DB_USERNAME=${GSM_DB_USERNAME:?err}
+      - GSM_DB_PASSWORD=${GSM_DB_PASSWORD:?err}
     volumes:
       - ./bot/:/bot
 

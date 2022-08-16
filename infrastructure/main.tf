@@ -219,7 +219,10 @@ resource "aws_ecs_task_definition" "gsm-task-definition" {
         "essential": true,
         "environment": [
           {"name": "GSM_TG_BOT_TOKEN", "value": local.envs["GSM_TG_BOT_TOKEN"]},
-          {"name": "XBOX_CLIENT_SECRET_EXPIRY_DATE", "value": local.envs["XBOX_CLIENT_SECRET_EXPIRY_DATE"]}
+          {"name": "XBOX_CLIENT_SECRET_EXPIRY_DATE", "value": local.envs["XBOX_CLIENT_SECRET_EXPIRY_DATE"]},
+          {"name": "GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD", "value": "${mongodbatlas_serverless_instance.gsm-db.connection_strings_standard_srv}"},
+          {"name": "GSM_DB_USERNAME", "value": var.MONGODBATLAS_DB_USER_USERNAME},
+          {"name": "GSM_DB_PASSWORD", "value": "${random_password.mongodbatlas_password.result}"},
         ],
         "portMappings": [
           {

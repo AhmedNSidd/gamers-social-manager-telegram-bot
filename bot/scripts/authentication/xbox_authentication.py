@@ -19,6 +19,7 @@ sys.path.append(pathlib.PurePath(pathlib.Path(__file__).parent.absolute(),
 
 from aiohttp import ClientSession, web
 from general.db import DBConnection
+from utils import import_root_dotenv_file
 from xbox.webapi.authentication.manager import AuthenticationManager
 from xbox.webapi.authentication.models import OAuth2TokenResponse
 from xbox.webapi.scripts import REDIRECT_URI
@@ -115,6 +116,8 @@ def main():
     )
 
     args = parser.parse_args()
+    # Import the database's credentials from our root .env file
+    import_root_dotenv_file()
 
     app = web.Application()
     app.add_routes([web.get("/auth/callback", auth_callback)])

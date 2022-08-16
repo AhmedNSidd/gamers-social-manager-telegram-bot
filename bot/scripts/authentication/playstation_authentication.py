@@ -15,13 +15,15 @@ sys.path.append(pathlib.PurePath(pathlib.Path(__file__).parent.absolute(),
 
 from general.db import DBConnection
 from psnawp_api import authenticator
-
+from utils import import_root_dotenv_file
 
 def validate_and_store_npsso(npsso: str):
     # This will raise errors if the npsso is invalid.
     authenticator.Authenticator(npsso)
-    credentials = DBConnection().find_one("credentials", {"platform": "psn"})
-    
+    # Import the database's credentials from our root .env file
+    import_root_dotenv_file()
+
+    credentials = DBConnection().find_one("credentials", {"platform": "psn"})    
     if credentials and credentials["npsso"] == npsso:
         print("The npsso code provided has already been previously stored and "
               "validated!")

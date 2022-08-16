@@ -1,8 +1,7 @@
 import os
-# import urllib.parse as urlparse
 
-from dotenv import load_dotenv
 from pymongo import MongoClient
+from urllib.parse import urlparse
 
 
 CREATE_TABLE_IF_NOT_EXISTS = "CREATE TABLE IF NOT EXISTS {}"
@@ -27,21 +26,21 @@ class DBConnection:
         it.init(*args, **kwargs)
         return it
 
-    def init(self):
-        if not os.getenv("GSM_DB_HOSTNAME"):
-            # Get the path to the directory this file is in
-            BASEDIR = os.path.abspath(os.path.dirname(__file__))
-            # Connect the path with your '.env' file name
-            load_dotenv(os.path.join(BASEDIR, '../../.env'))
-            host = "localhost"
-        else:
-            host = os.getenv("GSM_DB_HOSTNAME")
-        
-        url = "mongodb://{}:{}@{}:{}".format(
-            os.getenv("GSM_DB_USER_AND_DB"), os.getenv("GSM_DB_PASSWORD"),
-            host, os.getenv("GSM_DB_PORT")
+    def init(self, local=False):
+        db_username = os.getenv("GSM_DB_USERNAME")
+        db_password = os.getenv("GSM_DB_PASSWORD")
+        unauthenticated_parsed_db_url = urlparse(
+            os.getenv("GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD")
         )
-        self.db = MongoClient(url)[os.getenv("GSM_DB_USER_AND_DB")]
+        authenticated_parsed_db_url = unauthenticated_parsed_db_url._replace(
+            netloc="{}:{}@{}:{}".format(
+                db_username, db_password,
+                "localhost" if local else unauthenticated_parsed_db_url.hostname,
+                unauthenticated_parsed_db_url.port
+            )
+        )
+
+        self.db = MongoClient(authenticated_parsed_db_url.geturl())["gsm"]
 
     def __del__(self):
         self.db.client.close()
