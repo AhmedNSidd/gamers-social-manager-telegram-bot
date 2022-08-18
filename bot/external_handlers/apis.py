@@ -16,15 +16,18 @@ from xbox.webapi.scripts import REDIRECT_URI
 
 
 class PsnApi:
-    instance = None
 
     def __new__(cls, *args, **kwargs):
-        if cls.instance is None:
-            cls.instance = super().__new__(PsnApi)
-            return cls.instance
-        return cls.instance
+        it_id = "__it__"
+        it = cls.__dict__.get(it_id, None)
+        if it is not None:
+            return it
+        it = object.__new__(cls)
+        setattr(cls, it_id, it)
+        it.init(*args, **kwargs)
+        return it
 
-    def __init__(self):
+    def init(self):
         self.client = psnawp_api.psnawp.PSNAWP(self._get_psn_npsso())
         self._check_credentials_expiry()
 
@@ -144,15 +147,17 @@ class XboxLiveApi:
         "Scarlett": 9,
     }
 
-    instance = None
-
     def __new__(cls, *args, **kwargs):
-        if cls.instance is None:
-            cls.instance = super().__new__(XboxLiveApi)
-            return cls.instance
-        return cls.instance
+        it_id = "__it__"
+        it = cls.__dict__.get(it_id, None)
+        if it is not None:
+            return it
+        it = object.__new__(cls)
+        setattr(cls, it_id, it)
+        it.init(*args, **kwargs)
+        return it
 
-    def __init__(self):
+    def init(self):
         self._initialize_credentials()
         self._check_expiry()
 

@@ -4,15 +4,6 @@ from pymongo import MongoClient
 from urllib.parse import urlparse, quote_plus
 
 
-CREATE_TABLE_IF_NOT_EXISTS = "CREATE TABLE IF NOT EXISTS {}"
-DROP_CASCADE = "DROP TABLE {} CASCADE"
-SELECT = "SELECT {} FROM {}"
-INSERT = "INSERT INTO {} VALUES {}"
-SELECT_WHERE = "SELECT {} FROM {} WHERE {}"
-SELECT_WHERE_ORDER_BY = "SELECT {} FROM {} WHERE {} ORDER BY {}"
-UPDATE_WHERE = "UPDATE {} SET {} WHERE {}"
-DELETE_WHERE = "DELETE FROM {} WHERE {}"
-
 class DBConnection:
     instance = None
 
@@ -26,29 +17,25 @@ class DBConnection:
         it.init(*args, **kwargs)
         return it
 
-    def init(self, local=False):
-        db_username = os.getenv("GSM_DB_USERNAME")
-        db_password = os.getenv("GSM_DB_PASSWORD")
-        unauthenticated_parsed_db_url = urlparse(
-            os.getenv("GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD")
-        )
-        authenticated_parsed_db_url = unauthenticated_parsed_db_url._replace(
-            netloc="{}:{}@{}{}".format(
-                db_username, db_password,
-                "localhost" if local else unauthenticated_parsed_db_url.hostname,
-                (f":{unauthenticated_parsed_db_url.port}" if unauthenticated_parsed_db_url.port else "")
-            )
-        )
-        encoded_db_url = authenticated_parsed_db_url._replace(
-            netloc="{}:{}@{}{}".format(
-                quote_plus(authenticated_parsed_db_url.username),
-                quote_plus(authenticated_parsed_db_url.password),
-                "localhost" if local else authenticated_parsed_db_url.hostname,
-                (f":{authenticated_parsed_db_url.port}" if authenticated_parsed_db_url.port else "")
-            )
-        )
+    def init(self, db_url: str):
+        """
+        This intializes the database. Note that there are three separate
+        situations in which this class may be initialized under:
 
-        self.db = MongoClient(encoded_db_url.geturl())["gsm"]
+        1) The GSM bot is being run in a container under Docker Compose,
+        in which case, we can just get the DB url straight from the environment
+        variables
+        2) This class is being called when we are running a script
+        (like in scripts/authentication/) In this case, we need to have
+        specified from the script that we are creating running locally so the
+        hostname will be localhost, the script also would have needed to import
+        environment varibles from the dotenv file in the root of our project
+        so we could have access to the db variables we use in this method.
+        3) The same script mentioned in 2), is run, but this time for our prod
+        database so that 
+        """
+        self.url = db_url
+        self.db = MongoClient(db_url)["gsm"]
 
     def __del__(self):
         self.db.client.close()
@@ -91,3 +78,32 @@ class DBConnection:
 
     def list_collection_names(self):
         return self.db.list_collection_names()
+
+    @staticmethod
+    def authenticate_an_unauthenticated_db_url(unauthenticated_db_url, username, password, is_db_local=False):
+        """
+        This method is used to convert an unauthenticated database url into a
+        database url that has credententials attached to it.
+        """
+        unauthenticated_parsed_db_url = urlparse(unauthenticated_db_url)
+
+        authenticated_parsed_db_url = unauthenticated_parsed_db_url._replace(
+            netloc="{}:{}@{}{}".format(
+                username, password,
+                ("localhost" if is_db_local else
+                 unauthenticated_parsed_db_url.hostname),
+                (f":{unauthenticated_parsed_db_url.port}"
+                 if unauthenticated_parsed_db_url.port else "")
+            )
+        )
+        encoded_db_url = authenticated_parsed_db_url._replace(
+            netloc="{}:{}@{}{}".format(
+                quote_plus(authenticated_parsed_db_url.username),
+                quote_plus(authenticated_parsed_db_url.password),
+                ("localhost" if is_db_local else
+                 authenticated_parsed_db_url.hostname),
+                (f":{authenticated_parsed_db_url.port}"
+                 if authenticated_parsed_db_url.port else "")
+            )
+        )
+        return encoded_db_url.geturl()

@@ -15,6 +15,7 @@ services:
   bot:
     build:
       context: .
+    command: ["python3", "-u", "bot.py", "--localprod"]
     depends_on:
       - db
     environment:

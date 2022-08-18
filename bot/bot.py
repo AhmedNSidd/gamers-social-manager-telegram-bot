@@ -3,9 +3,12 @@ This is a bot made for the Telegram Messenger application. The purpose of this
 bot is to connect gamers by allowing them to see other's online statuses, and
 notifying each other when it's time to play.
 """
+import os
+
+from argparse import ArgumentParser
+from general.utils import import_root_dotenv_file
 from external_handlers.apis_wrapper import ApisWrapper
 from general.db import DBConnection
-from general.production import PRODUCTION_READY, PORT
 from general.values import TOKEN
 from handlers import basic, notify_groups, status
 from telegram.ext import (Updater, CallbackQueryHandler, CommandHandler,
@@ -13,10 +16,25 @@ from telegram.ext import (Updater, CallbackQueryHandler, CommandHandler,
 
 
 def main():
+    # Set up arguments to the program
+    parser = ArgumentParser(description="Runs the GSM Telegram Bot")
+    parser.add_argument(
+        "--localdb",
+        help="Indicates whether the database of the bot is running on localhost or not",
+        action="store_true"
+    )
+    parser.add_argument(
+        "--localprod",
+        help="Indicates whether the bot should poll in order to get telegram updates",
+        action="store_true"
+    )
+    args = parser.parse_args()
+
     updater = Updater(TOKEN, use_context=True)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
+    # Set up the Conversation Handlers
     add_status_user_conversation = ConversationHandler(
         entry_points=[
             CommandHandler("add_status_user", status.add_status_user.start),
@@ -213,12 +231,6 @@ def main():
     dp.add_handler(CommandHandler("f", basic.f), 1)
     dp.add_handler(CommandHandler("mf", basic.mf), 1)
 
-    # dp.add_handler(CommandHandler("add_notify_user", notify.add_notify_user))
-    # dp.add_handler(CommandHandler("del_notify_user", notify.del_notify_user))
-    # dp.add_handler(CommandHandler("set_notify_msg", notify.set_notify_msg))
-    # dp.add_handler(CommandHandler("list_notify_users", notify.list_notify_users))
-    # dp.add_handler(CommandHandler("list_notify_msg", notify.list_notify_msg))
-    # dp.add_handler(CommandHandler("notify", notify.notify))
     dp.add_handler(add_notify_group_conversation, 4)
     dp.add_handler(notify_group_invites_conversation, 5)
     dp.add_handler(
@@ -235,17 +247,26 @@ def main():
     # log all errors
     dp.add_error_handler(basic.error)
 
+     # If the bot's db is running locally, load dotenv environment variables
+    if args.localdb:
+        import_root_dotenv_file()
+
+    # Set up the database singleton object
+    DBConnection(DBConnection.authenticate_an_unauthenticated_db_url(
+        os.getenv("GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD"),
+        os.getenv("GSM_DB_USERNAME"), os.getenv("GSM_DB_PASSWORD"),
+        is_db_local=args.localdb
+    ))
+
     # Setup the APIs
     ApisWrapper()
-    # Setup the connection to the database...
-    DBConnection()
 
     # Start the Bot
-    if PRODUCTION_READY:
-        updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
-                            #   webhook_url=f"{HEROKU_APP_URL}/{TOKEN}")
-    else:
+    if args.localprod:
         updater.start_polling()
+    else:
+        updater.start_webhook(listen="0.0.0.0", port=8443, url_path=TOKEN)
+                            #   webhook_url=f"{HEROKU_APP_URL}/{TOKEN}")        
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
