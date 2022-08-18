@@ -33,18 +33,18 @@ class DBConnection:
             os.getenv("GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD")
         )
         authenticated_parsed_db_url = unauthenticated_parsed_db_url._replace(
-            netloc="{}:{}@{}:{}".format(
+            netloc="{}:{}@{}{}".format(
                 db_username, db_password,
                 "localhost" if local else unauthenticated_parsed_db_url.hostname,
-                unauthenticated_parsed_db_url.port
+                (f":{unauthenticated_parsed_db_url.port}" if unauthenticated_parsed_db_url.port else "")
             )
         )
         encoded_db_url = authenticated_parsed_db_url._replace(
-            netloc="{}:{}@{}:{}".format(
+            netloc="{}:{}@{}{}".format(
                 quote_plus(authenticated_parsed_db_url.username),
                 quote_plus(authenticated_parsed_db_url.password),
                 "localhost" if local else authenticated_parsed_db_url.hostname,
-                authenticated_parsed_db_url.port
+                (f":{authenticated_parsed_db_url.port}" if authenticated_parsed_db_url.port else "")
             )
         )
 
