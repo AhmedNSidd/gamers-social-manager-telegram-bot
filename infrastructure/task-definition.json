@@ -1,0 +1,76 @@
+{
+    "taskDefinition": {
+        "taskDefinitionArn": "arn:aws:ecs:eu-central-1:691709103119:task-definition/gsm-task-definition:31",
+        "containerDefinitions": [
+            {
+                "name": "gsm-bot",
+                "image": "jesuisahmedn/gsm-bot:2",
+                "cpu": 100,
+                "memory": 512,
+                "portMappings": [
+                    {
+                        "containerPort": 8443,
+                        "hostPort": 8443,
+                        "protocol": "tcp"
+                    }
+                ],
+                "essential": true,
+                "environment": [
+                    {
+                        "name": "GSM_TG_BOT_TOKEN",
+                        "value": "5330671032:AAE_BAbwy_Qs-ITevXWjC8b9v8edupyYUqY"
+                    },
+                    {
+                        "name": "XBOX_CLIENT_SECRET_EXPIRY_DATE",
+                        "value": "Jun 16, 2024"
+                    }
+                ],
+                "mountPoints": [],
+                "volumesFrom": [],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                        "awslogs-group": "gsm-logs",
+                        "awslogs-region": "eu-central-1",
+                        "awslogs-stream-prefix": "bot"
+                    }
+                }
+            }
+        ],
+        "family": "gsm-task-definition",
+        "executionRoleArn": "arn:aws:iam::691709103119:role/ecs-task-execution-role",
+        "networkMode": "awsvpc",
+        "revision": 31,
+        "volumes": [],
+        "status": "ACTIVE",
+        "requiresAttributes": [
+            {
+                "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+            },
+            {
+                "name": "ecs.capability.execution-role-awslogs"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+            },
+            {
+                "name": "ecs.capability.task-eni"
+            }
+        ],
+        "placementConstraints": [],
+        "compatibilities": [
+            "EC2",
+            "FARGATE"
+        ],
+        "requiresCompatibilities": [
+            "FARGATE"
+        ],
+        "cpu": "256",
+        "memory": "512",
+        "registeredAt": "2022-08-16T16:30:07.940000+05:00",
+        "registeredBy": "arn:aws:iam::691709103119:user/gsm-user"
+    }
+}

@@ -36,113 +36,113 @@ provider "aws" {
 # Create an EC2 instance with a Jenkins server running on it
 # *****************************************************************************
 
-# First define a security group resource that will allow traffic to the Jenkins
-# server on port 8080 and ssh access on port 22
-resource "aws_security_group" "web_traffic" {
-  name = "web_traffic"
-  description = "inbound ports for ssh and standard http and everything outbound"
+# # First define a security group resource that will allow traffic to the Jenkins
+# # server on port 8080 and ssh access on port 22
+# resource "aws_security_group" "web_traffic" {
+#   name = "web_traffic"
+#   description = "inbound ports for ssh and standard http and everything outbound"
 
-  ingress {
-    from_port = 8080
-    to_port = 8080
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   ingress {
+#     from_port = 8080
+#     to_port = 8080
+#     protocol = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
 
-  ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   ingress {
+#     from_port = 22
+#     to_port = 22
+#     protocol = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
 
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
+#   egress {
+#     from_port = 0
+#     to_port = 0
+#     protocol = "-1"
+#     cidr_blocks = ["0.0.0.0/0"]
+#     ipv6_cidr_blocks = ["::/0"]
+#   }
 
-  tags = {
-    "Name" = "gsm-jenkins-sg"
-  }
-}
+#   tags = {
+#     "Name" = "gsm-jenkins-sg"
+#   }
+# }
 
-# Set up a data block to find the lastest AMI from Amazon that we want to use
-# for your EC2 instance
+# # Set up a data block to find the lastest AMI from Amazon that we want to use
+# # for your EC2 instance
 
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners = ["099720109477"]
+# data "aws_ami" "amazon_linux" {
+#   most_recent = true
+#   owners = ["099720109477"]
 
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
-  }
-}
+#   filter {
+#     name   = "name"
+#     values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
+#   }
+# }
 
-# Create an EC2 instance and provision the instance
-resource "aws_instance" "gsm-jenkins" {
-  # ami = "ami-02058f44341e7f54e"
-  ami = data.aws_ami.amazon_linux.id
-  instance_type = "t2.micro"
-  security_groups = [aws_security_group.web_traffic.name]
-  key_name = "gsm-jenkins-ec2-key-pair"
+# # Create an EC2 instance and provision the instance
+# resource "aws_instance" "gsm-jenkins" {
+#   # ami = "ami-02058f44341e7f54e"
+#   ami = data.aws_ami.amazon_linux.id
+#   instance_type = "t2.micro"
+#   security_groups = [aws_security_group.web_traffic.name]
+#   key_name = "gsm-jenkins-ec2-key-pair"
 
-  provisioner "remote-exec" {
-    inline  = [
-      # Install Jenkins and its dependencies
-      "sudo apt update",
-      "sudo apt-get update",
-      "sudo apt install -y awscli jq",
-      "sudo apt-get install -y openjdk-11-jdk",
-      "curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null",
-      "echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null",
-      "sudo apt-get update",
-      "sudo apt-get install -y jenkins apt-transport-https ca-certificates curl gnupg lsb-release",
-      # Install Docker
-      "sudo mkdir -p /etc/apt/keyrings",
-      "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg",
-      "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
-      "sudo apt-get update",
-      "sudo apt-get install -y docker-ce docker-ce-cli containerd.io",
-      # Set proper permissions for docker & jenkins so docker can be run on jenkins server
-      "sudo usermod -aG docker ubuntu",
-      "sudo usermod -aG docker jenkins",
-      "sudo service jenkins restart", # Restart the jenkins server so new permissions take effect
-      # Create profile configuration file with aws credentials to configure aws-cli
-      # "printf '[default]\naws_access_key_id=${var.AWS_ACCESS_KEY}\naws_secret_access_key=${var.AWS_SECRET_KEY}\nregion=eu-central-1' > ~/.aws/config",
-      # "printf '[default]\naws_access_key_id=${var.AWS_ACCESS_KEY}\naws_secret_access_key=${var.AWS_SECRET_KEY}\nregion=eu-central-1' > ~/.aws/credentials",
+#   provisioner "remote-exec" {
+#     inline  = [
+#       # Install Jenkins and its dependencies
+#       "sudo apt update",
+#       "sudo apt-get update",
+#       "sudo apt install -y awscli jq",
+#       "sudo apt-get install -y openjdk-11-jdk",
+#       "curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null",
+#       "echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null",
+#       "sudo apt-get update",
+#       "sudo apt-get install -y jenkins apt-transport-https ca-certificates curl gnupg lsb-release",
+#       # Install Docker
+#       "sudo mkdir -p /etc/apt/keyrings",
+#       "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg",
+#       "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+#       "sudo apt-get update",
+#       "sudo apt-get install -y docker-ce docker-ce-cli containerd.io",
+#       # Set proper permissions for docker & jenkins so docker can be run on jenkins server
+#       "sudo usermod -aG docker ubuntu",
+#       "sudo usermod -aG docker jenkins",
+#       "sudo service jenkins restart", # Restart the jenkins server so new permissions take effect
+#       # Create profile configuration file with aws credentials to configure aws-cli
+#       # "printf '[default]\naws_access_key_id=${var.AWS_ACCESS_KEY}\naws_secret_access_key=${var.AWS_SECRET_KEY}\nregion=eu-central-1' > ~/.aws/config",
+#       # "printf '[default]\naws_access_key_id=${var.AWS_ACCESS_KEY}\naws_secret_access_key=${var.AWS_SECRET_KEY}\nregion=eu-central-1' > ~/.aws/credentials",
 
-      # "sudo yum update –y",
-      # "sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo",
-      # "sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key",
-      # "sudo amazon-linux-extras install epel -y",
-      # "sudo amazon-linux-extras install java-openjdk11 -y",
-      # "sudo yum upgrade -y",
-      # "sudo yum install -y jenkins git yum-utils",
-      # "sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
-      # "sudo yum install docker-ce docker-ce-cli containerd.io",
-      # "sudo groupadd docker",
-      # "sudo usermod -aG docker ubuntu",
-      # "sudo usermod -aG docker jenkins",
-      # "sudo systemctl daemon-reload",
-      # "sudo systemctl start jenkins",
-    ]
-  }
+#       # "sudo yum update –y",
+#       # "sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo",
+#       # "sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key",
+#       # "sudo amazon-linux-extras install epel -y",
+#       # "sudo amazon-linux-extras install java-openjdk11 -y",
+#       # "sudo yum upgrade -y",
+#       # "sudo yum install -y jenkins git yum-utils",
+#       # "sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
+#       # "sudo yum install docker-ce docker-ce-cli containerd.io",
+#       # "sudo groupadd docker",
+#       # "sudo usermod -aG docker ubuntu",
+#       # "sudo usermod -aG docker jenkins",
+#       # "sudo systemctl daemon-reload",
+#       # "sudo systemctl start jenkins",
+#     ]
+#   }
 
-  connection {
-    type = "ssh"
-    host = self.public_ip
-    user = "ubuntu"
-    private_key = file("~/.ssh/gsm-jenkins-ec2-key-pair.pem")
-  }
+#   connection {
+#     type = "ssh"
+#     host = self.public_ip
+#     user = "ubuntu"
+#     private_key = file("~/.ssh/gsm-jenkins-ec2-key-pair.pem")
+#   }
 
-  tags = {
-    "Name" = "gsm-jenkins-instance"
-  }
-}
+#   tags = {
+#     "Name" = "gsm-jenkins-instance"
+#   }
+# }
 
 # *****************************************************************************
 # Set up MongoDB Atlas infrastructure (db + db-user)
@@ -175,6 +175,21 @@ resource "mongodbatlas_database_user" "gsm-db-user" {
   roles {
     role_name     = "readWrite"
     database_name = "gsm"
+  }
+}
+
+resource "null_resource" "provision_prod_db" {
+
+  provisioner "local-exec" {
+    environment = {
+      GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD = "${mongodbatlas_serverless_instance.gsm-db.connection_strings_standard_srv}"
+      GSM_DB_USERNAME = "${var.MONGODBATLAS_DB_USER_USERNAME}"
+      GSM_DB_PASSWORD = nonsensitive("${random_password.mongodbatlas_password.result}")
+      PSN_NPSSO = "${var.PSN_NPSSO}"
+      XBOX_CLIENT_ID = "${var.XBOX_CLIENT_ID}"
+      XBOX_CLIENT_SECRET = "${var.XBOX_CLIENT_SECRET}"
+     }
+    command = "/bin/bash provision_db.sh"
   }
 }
 
@@ -219,7 +234,6 @@ resource "aws_ecs_task_definition" "gsm-task-definition" {
         "essential": true,
         "environment": [
           {"name": "GSM_TG_BOT_TOKEN", "value": local.envs["GSM_TG_BOT_TOKEN"]},
-          {"name": "XBOX_CLIENT_SECRET_EXPIRY_DATE", "value": local.envs["XBOX_CLIENT_SECRET_EXPIRY_DATE"]},
           {"name": "GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD", "value": "${mongodbatlas_serverless_instance.gsm-db.connection_strings_standard_srv}"},
           {"name": "GSM_DB_USERNAME", "value": var.MONGODBATLAS_DB_USER_USERNAME},
           {"name": "GSM_DB_PASSWORD", "value": "${random_password.mongodbatlas_password.result}"},

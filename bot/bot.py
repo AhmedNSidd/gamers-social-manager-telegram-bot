@@ -265,8 +265,9 @@ def main():
     if args.localprod:
         updater.start_polling()
     else:
-        updater.start_webhook(listen="0.0.0.0", port=8443, url_path=TOKEN)
-                            #   webhook_url=f"{HEROKU_APP_URL}/{TOKEN}")        
+        updater.start_webhook(listen="0.0.0.0", url_path=TOKEN,
+                              webhook_url=f"https://gamersutilitybot.com/{TOKEN}")
+    #                         #   webhook_url=f"{HEROKU_APP_URL}/{TOKEN}")        
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
