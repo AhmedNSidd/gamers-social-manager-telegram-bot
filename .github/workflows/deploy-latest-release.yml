@@ -1,0 +1,60 @@
+name: deploy-latest-release
+on:
+  push:
+    branches: [ "deploying-to-aws" ]
+  # pull_request:
+  #   branches: [ "main" ]
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker CLI
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          username: ${{ secrets.DOCKERHUB_CREDENTIALS_USR }}
+          password: ${{ secrets.DOCKERHUB_CREDENTIALS_PSW }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
+          push: true
+          tags: jesuisahmedn/gsm-bot:${{ github.run_number }}
+  update-ecs:
+    needs: build-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition "gsm-task-definition" --query taskDefinition > task-definition.json
+
+      - name: Output
+        run: cat ./task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: gsm-bot
+          image: jesuisahmedn/gsm-bot:${{ github.run_number }}
+      
+
+      - name: Update Amazon ECS task definition in ECS Service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: gsm-service
+          cluster: gsm
+          wait-for-service-stability: true
+
