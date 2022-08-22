@@ -8,6 +8,10 @@ terraform {
       source = "hashicorp/aws"
       version = "~> 4.16"
     }
+    github = {
+      source  = "integrations/github"
+      version = "~> 4.0"
+    }
     mongodbatlas = {
       source = "mongodb/mongodbatlas"
       version = "1.4.3"
@@ -20,129 +24,45 @@ locals {
   envs = { for tuple in regexall("(.*)=(.*)", file("../.env")) : tuple[0] => sensitive(tuple[1]) }
 }
 
-# Set up the mongodbatlas provider and get credentials from our variables file
-provider "mongodbatlas" {
-  public_key = var.MONGODBATLAS_PUBLIC_KEY
-  private_key = var.MONGODBATLAS_PRIVATE_KEY
-}
-
 provider "aws" {
   region = "eu-central-1"
   access_key = var.AWS_ACCESS_KEY
   secret_key = var.AWS_SECRET_KEY
 }
 
-# *****************************************************************************
-# Create an EC2 instance with a Jenkins server running on it
-# *****************************************************************************
+# Configure the GitHub Provider
+provider "github" {
+  token = var.GITHUB_TOKEN
+}
 
-# # First define a security group resource that will allow traffic to the Jenkins
-# # server on port 8080 and ssh access on port 22
-# resource "aws_security_group" "web_traffic" {
-#   name = "web_traffic"
-#   description = "inbound ports for ssh and standard http and everything outbound"
+provider "mongodbatlas" {
+  public_key = var.MONGODBATLAS_PUBLIC_KEY
+  private_key = var.MONGODBATLAS_PRIVATE_KEY
+}
 
-#   ingress {
-#     from_port = 8080
-#     to_port = 8080
-#     protocol = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
+resource "github_actions_secret" "aws_access_key_id" {
+  repository       = var.GITHUB_REPO_NAME
+  secret_name      = "AWS_ACCESS_KEY_ID"
+  plaintext_value  = var.AWS_ACCESS_KEY
+}
 
-#   ingress {
-#     from_port = 22
-#     to_port = 22
-#     protocol = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
+resource "github_actions_secret" "aws_secret_access_key" {
+  repository       = var.GITHUB_REPO_NAME
+  secret_name      = "AWS_SECRET_ACCESS_KEY"
+  plaintext_value  = var.AWS_SECRET_KEY
+}
 
-#   egress {
-#     from_port = 0
-#     to_port = 0
-#     protocol = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#     ipv6_cidr_blocks = ["::/0"]
-#   }
+resource "github_actions_secret" "dockerhub_credentials_username" {
+  repository       = var.GITHUB_REPO_NAME
+  secret_name      = "DOCKERHUB_CREDENTIALS_USR"
+  plaintext_value  = var.DOCKERHUB_CREDENTIALS_USR
+}
 
-#   tags = {
-#     "Name" = "gsm-jenkins-sg"
-#   }
-# }
-
-# # Set up a data block to find the lastest AMI from Amazon that we want to use
-# # for your EC2 instance
-
-# data "aws_ami" "amazon_linux" {
-#   most_recent = true
-#   owners = ["099720109477"]
-
-#   filter {
-#     name   = "name"
-#     values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
-#   }
-# }
-
-# # Create an EC2 instance and provision the instance
-# resource "aws_instance" "gsm-jenkins" {
-#   # ami = "ami-02058f44341e7f54e"
-#   ami = data.aws_ami.amazon_linux.id
-#   instance_type = "t2.micro"
-#   security_groups = [aws_security_group.web_traffic.name]
-#   key_name = "gsm-jenkins-ec2-key-pair"
-
-#   provisioner "remote-exec" {
-#     inline  = [
-#       # Install Jenkins and its dependencies
-#       "sudo apt update",
-#       "sudo apt-get update",
-#       "sudo apt install -y awscli jq",
-#       "sudo apt-get install -y openjdk-11-jdk",
-#       "curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null",
-#       "echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null",
-#       "sudo apt-get update",
-#       "sudo apt-get install -y jenkins apt-transport-https ca-certificates curl gnupg lsb-release",
-#       # Install Docker
-#       "sudo mkdir -p /etc/apt/keyrings",
-#       "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg",
-#       "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
-#       "sudo apt-get update",
-#       "sudo apt-get install -y docker-ce docker-ce-cli containerd.io",
-#       # Set proper permissions for docker & jenkins so docker can be run on jenkins server
-#       "sudo usermod -aG docker ubuntu",
-#       "sudo usermod -aG docker jenkins",
-#       "sudo service jenkins restart", # Restart the jenkins server so new permissions take effect
-#       # Create profile configuration file with aws credentials to configure aws-cli
-#       # "printf '[default]\naws_access_key_id=${var.AWS_ACCESS_KEY}\naws_secret_access_key=${var.AWS_SECRET_KEY}\nregion=eu-central-1' > ~/.aws/config",
-#       # "printf '[default]\naws_access_key_id=${var.AWS_ACCESS_KEY}\naws_secret_access_key=${var.AWS_SECRET_KEY}\nregion=eu-central-1' > ~/.aws/credentials",
-
-#       # "sudo yum update –y",
-#       # "sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo",
-#       # "sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key",
-#       # "sudo amazon-linux-extras install epel -y",
-#       # "sudo amazon-linux-extras install java-openjdk11 -y",
-#       # "sudo yum upgrade -y",
-#       # "sudo yum install -y jenkins git yum-utils",
-#       # "sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
-#       # "sudo yum install docker-ce docker-ce-cli containerd.io",
-#       # "sudo groupadd docker",
-#       # "sudo usermod -aG docker ubuntu",
-#       # "sudo usermod -aG docker jenkins",
-#       # "sudo systemctl daemon-reload",
-#       # "sudo systemctl start jenkins",
-#     ]
-#   }
-
-#   connection {
-#     type = "ssh"
-#     host = self.public_ip
-#     user = "ubuntu"
-#     private_key = file("~/.ssh/gsm-jenkins-ec2-key-pair.pem")
-#   }
-
-#   tags = {
-#     "Name" = "gsm-jenkins-instance"
-#   }
-# }
+resource "github_actions_secret" "dockerhub_credentials_password" {
+  repository       = var.GITHUB_REPO_NAME
+  secret_name      = "DOCKERHUB_CREDENTIALS_PSW"
+  plaintext_value  = var.DOCKERHUB_CREDENTIALS_PSW
+}
 
 # *****************************************************************************
 # Set up MongoDB Atlas infrastructure (db + db-user)
@@ -179,6 +99,9 @@ resource "mongodbatlas_database_user" "gsm-db-user" {
 }
 
 resource "null_resource" "provision_prod_db" {
+  depends_on = [
+    mongodbatlas_database_user.gsm-db-user
+  ]
 
   provisioner "local-exec" {
     environment = {
@@ -229,31 +152,31 @@ resource "aws_ecs_task_definition" "gsm-task-definition" {
   family = "gsm-task-definition"
   container_definitions = jsonencode([
     {
-        "name": "gsm-bot",
-        "image": "jesuisahmedn/gsm-bot:2",
-        "essential": true,
-        "environment": [
-          {"name": "GSM_TG_BOT_TOKEN", "value": local.envs["GSM_TG_BOT_TOKEN"]},
-          {"name": "GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD", "value": "${mongodbatlas_serverless_instance.gsm-db.connection_strings_standard_srv}"},
-          {"name": "GSM_DB_USERNAME", "value": var.MONGODBATLAS_DB_USER_USERNAME},
-          {"name": "GSM_DB_PASSWORD", "value": "${random_password.mongodbatlas_password.result}"},
-        ],
-        "portMappings": [
-          {
-            "containerPort": 8443,
-            "hostPort": 8443
-          }
-        ],
-        "logConfiguration": {
-          "logDriver": "awslogs",
-          "options": {
-            "awslogs-group": "gsm-logs",
-            "awslogs-region": "eu-central-1",
-            "awslogs-stream-prefix": "bot"
-          }
-        },
-        "memory": 512,
-        "cpu": 100
+      "name" : "gsm-bot",
+      "image" : "jesuisahmedn/gsm-bot:2",
+      "essential" : true,
+      "environment" : [
+        { "name" : "GSM_TG_BOT_TOKEN", "value" : local.envs["GSM_TG_BOT_TOKEN"] },
+        { "name" : "GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD", "value" : "${mongodbatlas_serverless_instance.gsm-db.connection_strings_standard_srv}" },
+        { "name" : "GSM_DB_USERNAME", "value" : var.MONGODBATLAS_DB_USER_USERNAME },
+        { "name" : "GSM_DB_PASSWORD", "value" : "${random_password.mongodbatlas_password.result}" },
+      ],
+      "portMappings" : [
+        {
+          "containerPort" : 80,
+          "hostPort" : 80
+        }
+      ],
+      "logConfiguration" : {
+        "logDriver" : "awslogs",
+        "options" : {
+          "awslogs-group" : "gsm-logs",
+          "awslogs-region" : "eu-central-1",
+          "awslogs-stream-prefix" : "bot"
+        }
+      },
+      "memory" : 512,
+      "cpu" : 100
     }
   ])
   requires_compatibilities = [ "FARGATE" ]
@@ -264,8 +187,8 @@ resource "aws_ecs_task_definition" "gsm-task-definition" {
 }
 
 resource "aws_iam_role" "ecs-task-execution-role" {
-    name = "ecs-task-execution-role"
-    assume_role_policy = "${data.aws_iam_policy_document.assume_role_policy.json}"
+  name = "ecs-task-execution-role"
+  assume_role_policy = "${data.aws_iam_policy_document.assume_role_policy.json}"
 }
 
 data "aws_iam_policy_document" "assume_role_policy" {
@@ -284,6 +207,26 @@ resource "aws_iam_role_policy_attachment" "ecs-task-execution-role-policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# Creating a security group for the ECS service
+resource "aws_security_group" "service_security_group" {
+  name        = "example-task-security-group"
+  vpc_id      = aws_default_vpc.default_vpc.id
+
+  ingress {
+    protocol        = "tcp"
+    from_port       = 80 
+    to_port         = 80
+    security_groups = [aws_security_group.load_balancer_security_group.id]
+  }
+
+  egress {
+    protocol    = "-1"
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_ecs_service" "gsm-service" {
   name = "gsm-service"
   cluster = "${aws_ecs_cluster.gsm.id}"
@@ -292,12 +235,13 @@ resource "aws_ecs_service" "gsm-service" {
   desired_count = 1
 
   load_balancer {
-    target_group_arn = "${aws_lb_target_group.target_group.arn}" # Referencing our target group
+    target_group_arn = aws_lb_target_group.target_group.arn # Referencing our target group
     container_name   = "gsm-bot"
-    container_port   = 8443 # Specifying the container port
+    container_port   = 80 # Specifying the container port
   }
 
   network_configuration {
+    security_groups = [ aws_security_group.service_security_group.id ]
     subnets = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}", "${aws_default_subnet.default_subnet_c.id}"]
     assign_public_ip = true
   }
@@ -333,8 +277,8 @@ resource "aws_alb" "application_load_balancer" {
 # Creating a security group for the load balancer:
 resource "aws_security_group" "load_balancer_security_group" {
   ingress {
-    from_port   = 80 # Allowing traffic in from port 80
-    to_port     = 80
+    from_port   = 443 # Allowing traffic in from port 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"] # Allowing traffic in from all sources
   }
@@ -349,7 +293,7 @@ resource "aws_security_group" "load_balancer_security_group" {
 
 resource "aws_lb_target_group" "target_group" {
   name        = "target-group"
-  port        = 80
+  port        = 80 # The port the bot is exposed on
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = "${aws_default_vpc.default_vpc.id}" # Referencing the default VPC
@@ -361,10 +305,60 @@ resource "aws_lb_target_group" "target_group" {
 
 resource "aws_lb_listener" "listener" {
   load_balancer_arn = "${aws_alb.application_load_balancer.arn}" # Referencing our load balancer
-  port              = "80"
-  protocol          = "HTTP"
+  port              = "443"
+  protocol          = "HTTPS"
+  certificate_arn   = aws_acm_certificate_validation.cert.certificate_arn
   default_action {
     type             = "forward"
-    target_group_arn = "${aws_lb_target_group.target_group.arn}" # Referencing our tagrte group
+    target_group_arn = aws_lb_target_group.target_group.arn # Referencing our tagrte group
+  }
+}
+
+# # This data source looks up the public DNS zone
+data "aws_route53_zone" "public" {
+  name         = "gamersutilitybot.com"
+  private_zone = false
+}
+
+# This creates an SSL certificate
+resource "aws_acm_certificate" "myapp" {
+  domain_name       = aws_route53_record.myapp.fqdn
+  validation_method = "DNS"
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# # This is a DNS record for the ACM certificate validation to prove we own the domain
+# #
+# # This example, we make an assumption that the certificate is for a single domain name so can just use the first value of the
+# # domain_validation_options.  It allows the terraform to apply without having to be targeted.
+# # This is somewhat less complex than the example at https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate_validation
+# # - that above example, won't apply without targeting
+
+resource "aws_route53_record" "cert_validation" {
+  allow_overwrite = true
+  name            = tolist(aws_acm_certificate.myapp.domain_validation_options)[0].resource_record_name
+  records         = [ tolist(aws_acm_certificate.myapp.domain_validation_options)[0].resource_record_value ]
+  type            = tolist(aws_acm_certificate.myapp.domain_validation_options)[0].resource_record_type
+  zone_id  = data.aws_route53_zone.public.id
+  ttl      = 60
+}
+
+# This tells terraform to cause the route53 validation to happen
+resource "aws_acm_certificate_validation" "cert" {
+  certificate_arn         = aws_acm_certificate.myapp.arn
+  validation_record_fqdns = [ aws_route53_record.cert_validation.fqdn ]
+}
+
+# # Standard route53 DNS record for "myapp" pointing to an ALB
+resource "aws_route53_record" "myapp" {
+  zone_id = data.aws_route53_zone.public.zone_id
+  name    = "${data.aws_route53_zone.public.name}"
+  type    = "A"
+  alias {
+    name                   = aws_alb.application_load_balancer.dns_name
+    zone_id                = aws_alb.application_load_balancer.zone_id
+    evaluate_target_health = false
   }
 }
