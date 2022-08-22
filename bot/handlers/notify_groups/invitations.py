@@ -199,6 +199,7 @@ def reply_to_invite(update, context):
     return WAITING_FOR_REPLY
 
 
+# TODO (Issue #28): Remove joining policy from notify groups & /join_notify_group
 def join(update, context):
     """
     This command will join a user as a member for the notify group specified.

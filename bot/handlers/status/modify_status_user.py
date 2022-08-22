@@ -43,6 +43,8 @@ def start(update, context):
             else None
         )
 
+    # TODO (Issue #27): should only add other user's status users if the
+    # current user is a group administrator.
     current_users_status_users = DBConnection().find(
         "statususers", {"chat_id": context.user_data.get('chat_id')}
     )
@@ -120,6 +122,7 @@ def start(update, context):
             )])
 
     keyboard_markup = InlineKeyboardMarkup(keyboard)
+    # TODO (Issue #26): bot send message logic is unnecessarily complex
     if not is_callback and context.user_data.get("group_name"):
         # This is the case where someone in a group just typed
         # /modify_status_user

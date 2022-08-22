@@ -379,6 +379,7 @@ def cancel(update, context):
     return ConversationHandler.END
 
 def stop_cmds(update, context):
+    # TODO (Issue #25): This is not really blocking other bot commands properly
     context.user_data["messages"].append(update.message)
     keyboard = [[
         InlineKeyboardButton(
