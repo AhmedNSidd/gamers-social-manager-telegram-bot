@@ -7,7 +7,7 @@ from telegram.ext import ConversationHandler
 # Conversation states for the CommandHandler for add_status_user
 TYPING_NAME, TYPING_DESCRIPTION, CHOOSING_JOINING_POLICY = range(3)
 
-
+# TODO (Issue #31): Prevent Notify Groups from having a group name that includes a space 
 def start(update, context):
     """
     Sends a private message to the user starting the add_notify_group process
@@ -236,7 +236,7 @@ def process_description(update, context):
     )
     return CHOOSING_JOINING_POLICY
 
-
+# TODO (Issue #28): Remove joining policy from notify groups & /join_notify_group
 def process_joining_policy(update, context):
     update = update.callback_query
     update.answer()
@@ -327,6 +327,6 @@ def stop_cmds(update, context):
         quote=True
     ))
 
-
+# TODO (Issue #30): Implement /modify_notify_group
 def modify_notify_group(update, context):
     pass

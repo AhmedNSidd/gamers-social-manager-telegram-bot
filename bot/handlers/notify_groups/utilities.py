@@ -1,6 +1,7 @@
 from telegram import ParseMode
 from general.db import DBConnection
 
+# TODO (Issue #32): Allow entry of an optional message when using /notify
 def notify(update, context):
     """
     This method grabs the name of the notify group provided by the user and
