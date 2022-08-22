@@ -252,3 +252,6 @@ Alfonso Valdes Carrales](https://betterprogramming.pub/how-to-create-a-ci-cd-pip
 - [How to Deploy a Dockerised Application on AWS ECS With Terraform](https://medium.com/avmconsulting-blog/how-to-deploy-a-dockerised-node-js-application-on-aws-ecs-with-terraform-3e6bceb48785)
 - [aws ecs - how to update a task definition](https://github.com/aws/aws-cli/issues/3064)
 - [Deploying Docker Containers on AWS ECS using AWS CLI by Prakhar Srivastav](https://docker-curriculum.com/#aws-elastic-container-service)
+- [AWS APPLICATION LOAD BALANCER (ALB) AND ECS WITH FLASK APP](https://www.bogotobogo.com/DevOps/AWS/aws-ELB-ALB-Application-Load-Balancer-ECS.php)
+- [Create and manage an AWS ECS cluster with Terraform](https://www.architect.io/blog/2021-03-30/create-and-manage-an-aws-ecs-cluster-with-terraform/)
+- [How to Deploy an Application to AWS Fargate](https://levelup.gitconnected.com/how-to-deploy-an-application-to-aws-fargate-cd3cfaccc537)
