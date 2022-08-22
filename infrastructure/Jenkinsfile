@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+    environment {
+        // AWS_ACCOUNT_ID = "691709103119"
+        // AWS_DEFAULT_REGION = "eu-central-1"
+        // CLUSTER_NAME = "gsm"
+        // SERVICE_NAME = "gsm-service"
+        // TASK_DEFINITION_NAME = "gsm-task-definition"
+        // DESIRED_COUNT = "1"
+        // IMAGE_REPO_NAME = "jesuisahmedn/gsm"
+        // IMAGE_TAG = "${env.BUILD_ID}"
+        // REPOSITORY_URI = "$IMAGE_REPO_NAME:$IMAGE_TAG"
+        // registryCredential = "aws-gsm-user"
+        DOCKERHUB_CREDENTIALS=credentials('dockerhub-jesuisahmedn-credentials')
+    }
+    stages {
+        stage("Build Image") {
+            // Build the latest image using  Docker
+            steps {
+                echo "Building image"
+                sh "docker build -t jesuisahmedn/gsm-bot:${env.BUILD_ID} ."
+            }
+        }
+        stage("Login to Docker Hub") {
+            // Simply login to docker hub so we can push the latest image
+    		steps {
+                echo "Logging into Docker Hub"
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+			}
+        }
+        stage("Push Image") {
+            // Here, we will push the docker image we have built to Docker Hub.
+            steps {
+                echo "Pushing docker image to dockerhub"
+                sh "docker push jesuisahmedn/gsm-bot:${env.BUILD_ID}"
+            }
+        }
+        stage("Update Infrastructure") {
+            // This will update our AWS ECS task definition to use the image
+            // with the new tag.
+            steps {
+                echo "Updating the AWS infrastructure to use the image jesuisahmedn/gsm-bot:${env.BUILD_ID}"
+                withAWS(credentials: 'aws-gsm-iam-credentials', region: 'eu-central-1') {
+                    sh """
+                    NEW_TASK_DEFINITION=\$(aws ecs describe-task-definition --task-definition "gsm-task-definition" --region "eu-central-1" | jq --arg IMAGE "jesuisahmedn/gsm-bot:${env.BUILD_ID}" '.taskDefinition | .containerDefinitions[0].image = \$IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities)')
+                    NEW_REVISION=\$(aws ecs register-task-definition --region "eu-central-1" --cli-input-json "\$NEW_TASK_DEFINITION" | jq '.taskDefinition.revision')
+                    aws ecs update-service --cluster "gsm" --service "gsm-service" --task-definition "gsm-task-definition:\$NEW_REVISION"
+                    """
+                }
+            }
+        }
+    }
+    post {
+		always {
+			sh 'docker logout'
+		}
+    }
+}

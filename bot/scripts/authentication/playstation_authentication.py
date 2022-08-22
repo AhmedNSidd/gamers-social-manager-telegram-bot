@@ -8,26 +8,28 @@ For more information on the obtaining of a Playstation npsso, reference the
 DEVELOPMENT.md file at the root of project.
 """
 import argparse
+import os
 import pathlib
 import sys
 sys.path.append(pathlib.PurePath(pathlib.Path(__file__).parent.absolute(),
                                  "../..").__str__())
 
+from general.utils import import_root_dotenv_file
 from general.db import DBConnection
 from psnawp_api import authenticator
 
 
-def validate_and_store_npsso(npsso: str):
+def validate_and_store_npsso(db: DBConnection, npsso: str):
     # This will raise errors if the npsso is invalid.
     authenticator.Authenticator(npsso)
-    credentials = DBConnection().find_one("credentials", {"platform": "psn"})
-    
+
+    credentials = db.find_one("credentials", {"platform": "psn"})    
     if credentials and credentials["npsso"] == npsso:
         print("The npsso code provided has already been previously stored and "
               "validated!")
     else:
         if credentials:
-            DBConnection().update_one(
+            db.update_one(
                 "credentials",
                 {"platform": "psn"},
                 {"$set": {
@@ -35,7 +37,7 @@ def validate_and_store_npsso(npsso: str):
                 }}
             )
         else:
-            DBConnection().insert_one("credentials",
+            db.insert_one("credentials",
                 {
                     "platform": "psn",
                     "npsso": npsso
@@ -52,8 +54,23 @@ def main():
         help="The Playstation npsso",
         required=True
     )
+    parser.add_argument(
+        "--localdb",
+        help="Indicates whether the database is running on localhost or not",
+        action="store_true"
+    )
     args = parser.parse_args()
-    validate_and_store_npsso(args.npsso)
+    if args.localdb:
+        import_root_dotenv_file()
+        
+    # Set up the database singleton object
+    db = DBConnection(DBConnection.authenticate_an_unauthenticated_db_url(
+        os.getenv("GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD"),
+        os.getenv("GSM_DB_USERNAME"), os.getenv("GSM_DB_PASSWORD"),
+        is_db_local=args.localdb
+    ))
+
+    validate_and_store_npsso(db, args.npsso)
 
 
 if __name__ == "__main__":

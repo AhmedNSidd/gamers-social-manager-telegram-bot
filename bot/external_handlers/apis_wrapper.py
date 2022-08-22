@@ -11,7 +11,6 @@ from models.user_status import UserStatus
 # class to initialize all those APIs 
 
 class ApisWrapper:
-    instance = None
 
     def __new__(cls, *args, **kwargs):
         it_id = "__it__"
@@ -24,8 +23,6 @@ class ApisWrapper:
         return it
 
     def init(self):
-        ApisWrapper.instance = self
-        ApisWrapper.__new__ = lambda _: ApisWrapper.instance
         self.psn_client = PsnApi()
         self.xbox_client = XboxLiveApi()
     

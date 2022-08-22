@@ -6,4 +6,5 @@ RUN apt-get update \
     && apt-get -y install libpq-dev gcc
 RUN pip3 install -r requirements.txt
 COPY ./bot/. .
+EXPOSE 80
 CMD ["python3", "-u", "bot.py"]

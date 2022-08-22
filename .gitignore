@@ -1,2 +1,9 @@
 .env
 **/__pycache__
+**/.DS_Store
+# Ignore extraneous terraform files
+infrastructure/.terraform/
+infrastructure/.terraform.lock.hcl
+infrastructure/terraform.tfstate
+infrastructure/terraform.tfstate.backup
+infrastructure/variables.tf
