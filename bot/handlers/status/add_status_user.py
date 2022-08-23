@@ -23,7 +23,7 @@ def start(update, context):
         if context.user_data["chat_id"] != context.user_data["user_id"]
         else None
     )
-    context.user_data["messages"] = []
+    context.user_data["messages_to_delete"] = []
     if context.user_data.get("group_name"):
         # If process was started in a group, send a group message that the bot
         # sent a private message
@@ -46,7 +46,7 @@ def start(update, context):
             callback_data=f"cancel"
         ),
     ]]
-    context.user_data["messages"].append(context.bot.send_message(
+    context.user_data["messages_to_delete"].append(context.bot.send_message(
         context.user_data["user_id"],
         f"Hey {update.message.from_user.first_name}!\n\nWe will add a status "
         "user to " + (f"the _{context.user_data['group_name']}_ group " 
@@ -59,7 +59,7 @@ def start(update, context):
         "at any point during this process",
         parse_mode=ParseMode.MARKDOWN
     ))
-    context.user_data["messages"].append(context.bot.send_message(
+    context.user_data["messages_to_delete"].append(context.bot.send_message(
         context.user_data["user_id"], 
         "Enter the *display name* for the status user you want to add to " + 
         (f"the _{context.user_data['group_name']}_ group" 
@@ -74,7 +74,7 @@ def start(update, context):
 def process_display_name(update, context):
     display_name = update.message.text.strip()
     chat_id = context.user_data.get("chat_id")
-    context.user_data["messages"].append(update.message)
+    context.user_data["messages_to_delete"].append(update.message)
     keyboard = [[
         InlineKeyboardButton(
             f"{values.CANCELLED_EMOJI} CANCEL",
@@ -83,7 +83,7 @@ def process_display_name(update, context):
     ]]
     if not display_name:
         # If the display name is empty, then send an error message.
-        context.user_data["messages"].append(update.message.reply_text(
+        context.user_data["messages_to_delete"].append(update.message.reply_text(
             "You did not provide a valid display name. Please enter a unique "
             "display name", quote=True
         ))
@@ -95,7 +95,7 @@ def process_display_name(update, context):
         {"chat_id": chat_id, "display_name": display_name}
     )
     if users_with_the_same_name > 0:
-        context.user_data["messages"].append(update.message.reply_text(
+        context.user_data["messages_to_delete"].append(update.message.reply_text(
             f"Somebody with that display name already exists in " +
             (f"the _{context.user_data['group_name']}_ group" 
              if context.user_data.get("group_name") else 
@@ -118,8 +118,8 @@ def process_display_name(update, context):
             callback_data=f"skip_xbox_gamertag"
         )
     ]]
-    while len(context.user_data["messages"]) > 1:
-        old_message = context.user_data["messages"].pop()
+    while len(context.user_data["messages_to_delete"]) > 1:
+        old_message = context.user_data["messages_to_delete"].pop()
         old_message.delete()
 
     context.bot.send_message(
@@ -128,7 +128,7 @@ def process_display_name(update, context):
         parse_mode=ParseMode.MARKDOWN
     )
 
-    context.user_data["messages"].append(context.bot.send_message(
+    context.user_data["messages_to_delete"].append(context.bot.send_message(
         context.user_data.get("user_id"),
         "Now enter your *Xbox Gamertag*",
         reply_markup=InlineKeyboardMarkup(keyboard),
@@ -155,10 +155,10 @@ def process_xbox_gamertag(update, context):
         )
     ]]
     if not is_callback:
-        context.user_data["messages"].append(update.message)
+        context.user_data["messages_to_delete"].append(update.message)
         xbox_gamertag = update.message.text.strip()
         if not xbox_gamertag:
-            context.user_data["messages"].append(update.message.reply_text(
+            context.user_data["messages_to_delete"].append(update.message.reply_text(
                 "You did not provide a valid Xbox Gamertag. Please enter a "
                 "valid Xbox Gamertag",
                 reply_markup=InlineKeyboardMarkup(keyboard),
@@ -169,7 +169,7 @@ def process_xbox_gamertag(update, context):
     if is_callback and xbox_gamertag == "skip_xbox_gamertag":
         status_msg_prefix = f"Skipped Xbox Live setup\n\n"
     else:
-        context.user_data["messages"].append(update.message.reply_text(
+        context.user_data["messages_to_delete"].append(update.message.reply_text(
             f"{values.RAISED_HAND_EMOJI} Please hold as we process your Xbox "
             "Gamertag. This might take around 10 seconds",
             quote=True
@@ -180,7 +180,7 @@ def process_xbox_gamertag(update, context):
             )
         except ClientResponseError as cre:
             if cre.status == 404:
-                context.user_data["messages"][-1].edit_text(
+                context.user_data["messages_to_delete"][-1].edit_text(
                     "The Xbox Gamertag you entered could not be found! "
                     "Please enter a valid Xbox Gamertag",
                     reply_markup=InlineKeyboardMarkup(keyboard)
@@ -191,8 +191,8 @@ def process_xbox_gamertag(update, context):
         status_msg_prefix = ("Great! Your Xbox Gamertag has been set as "
                              f"*{xbox_gamertag}*\n\n")
 
-    while len(context.user_data["messages"]) > 1:
-        old_message = context.user_data["messages"].pop()
+    while len(context.user_data["messages_to_delete"]) > 1:
+        old_message = context.user_data["messages_to_delete"].pop()
         old_message.delete()
 
     keyboard = [[
@@ -210,7 +210,7 @@ def process_xbox_gamertag(update, context):
         status_msg_prefix,
         parse_mode=ParseMode.MARKDOWN
     )
-    context.user_data["messages"].append(context.bot.send_message(
+    context.user_data["messages_to_delete"].append(context.bot.send_message(
         context.user_data.get("user_id"),
         "Now enter your PSN Online ID display your PSN "
         "status",
@@ -240,7 +240,7 @@ def process_psn_online_id(update, context):
     
     if not is_callback:
         username = update.message.from_user['username']
-        context.user_data["messages"].append(update.message)
+        context.user_data["messages_to_delete"].append(update.message)
         psn_online_id = update.message.text.strip()
         if not psn_online_id:
             keyboard = [[
@@ -253,7 +253,7 @@ def process_psn_online_id(update, context):
                     callback_data=f"skip_psn_online_id"
                 )
             ]]
-            context.user_data["messages"].append(update.message.reply_text(
+            context.user_data["messages_to_delete"].append(update.message.reply_text(
                 "You did not provide a valid PSN Online ID.  Please enter a "
                 "valid PSN Online ID",
                 reply_markup=InlineKeyboardMarkup(keyboard),
@@ -264,7 +264,7 @@ def process_psn_online_id(update, context):
     if is_callback and psn_online_id == "skip_psn_online_id":
         status_msg_prefix = "Skipped PSN setup\n\n"
     else:
-        context.user_data["messages"].append(update.message.reply_text(
+        context.user_data["messages_to_delete"].append(update.message.reply_text(
             f"{values.RAISED_HAND_EMOJI} Please hold as we process your PSN "
             "Online ID. This might take around 5 seconds",
             quote=True
@@ -275,7 +275,7 @@ def process_psn_online_id(update, context):
             )
         except ClientResponseError as cre:
             if cre.status == 404:
-                context.user_data["messages"][-1].edit_text(
+                context.user_data["messages_to_delete"][-1].edit_text(
                     "The PSN Online ID you entered could not be found! "
                     "Please enter a valid PSN Online ID",
                     reply_markup=InlineKeyboardMarkup(keyboard)
@@ -286,11 +286,11 @@ def process_psn_online_id(update, context):
         status_msg_prefix = ("Great! Your PSN Online ID has been set as "
                              f"*{psn_online_id}*\n\n")
 
-    while len(context.user_data["messages"]) > 1:
-        old_message = context.user_data["messages"].pop()
+    while len(context.user_data["messages_to_delete"]) > 1:
+        old_message = context.user_data["messages_to_delete"].pop()
         old_message.delete()
 
-    del context.user_data["messages"]
+    del context.user_data["messages_to_delete"]
 
     ret = process_new_status_user(context)
     if type(ret) == int:
@@ -345,7 +345,7 @@ def process_new_status_user(context):
                 callback_data=f"skip_xbox_gamertag"
             )
         ]]
-        context.user_data["messages"].append(context.bot.send_message(
+        context.user_data["messages_to_delete"].append(context.bot.send_message(
             context.user_data.get("user_id"),
             "Sorry! You can not add a status user with no gaming IDs. We "
             "will ask you for your gaming IDs again. Please enter at least "
@@ -366,8 +366,8 @@ def cancel(update, context):
         update = update.callback_query
         update.answer()
 
-    while context.user_data["messages"]:
-        old_message = context.user_data["messages"].pop()
+    while context.user_data["messages_to_delete"]:
+        old_message = context.user_data["messages_to_delete"].pop()
         old_message.delete()
 
     context.bot.send_message(
@@ -380,14 +380,14 @@ def cancel(update, context):
 
 def stop_cmds(update, context):
     # TODO (Issue #25): This is not really blocking other bot commands properly
-    context.user_data["messages"].append(update.message)
+    context.user_data["messages_to_delete"].append(update.message)
     keyboard = [[
         InlineKeyboardButton(
             f"{values.CANCELLED_EMOJI} CANCEL",
             callback_data=f"cancel"
         ),
     ]]
-    context.user_data["messages"].append(update.message.reply_text(
+    context.user_data["messages_to_delete"].append(update.message.reply_text(
         "All commands have been blocked until you finish the add status "
         "process, or choose to cancel to process",
         reply_markup=InlineKeyboardMarkup(keyboard),

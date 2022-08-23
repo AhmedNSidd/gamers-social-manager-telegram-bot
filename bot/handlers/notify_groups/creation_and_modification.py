@@ -312,21 +312,6 @@ def cancel(update, context):
     return ConversationHandler.END
 
 
-def stop_cmds(update, context):
-    context.user_data["messages_to_delete"].append(update.message)
-    keyboard = [[
-        InlineKeyboardButton(
-            f"{values.CANCELLED_EMOJI} CANCEL",
-            callback_data=f"cancel"
-        ),
-    ]]
-    context.user_data["messages_to_delete"].append(update.message.reply_text(
-        "All commands have been blocked until you finish the add notify "
-        "group process, or choose to cancel to process",
-        reply_markup=InlineKeyboardMarkup(keyboard),
-        quote=True
-    ))
-
 # TODO (Issue #30): Implement /modify_notify_group
 def modify_notify_group(update, context):
     pass
