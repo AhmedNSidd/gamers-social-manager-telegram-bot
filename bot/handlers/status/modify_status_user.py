@@ -43,11 +43,20 @@ def start(update, context):
             else None
         )
 
-    # TODO (Issue #27): should only add other user's status users if the
-    # current user is a group administrator.
-    current_users_status_users = DBConnection().find(
-        "statususers", {"chat_id": context.user_data.get('chat_id')}
-    )
+    user_group_privilege = context.bot.get_chat_member(
+        context.user_data["chat_id"], context.user_data["user_id"]
+    ).status
+
+    if (user_group_privilege == "creator"
+        or user_group_privilege == "administrator"):
+        current_users_status_users = DBConnection().find(
+            "statususers", {"chat_id": context.user_data["chat_id"]}
+        )
+    else:
+        current_users_status_users = DBConnection().find(
+            "statususers", {"chat_id": context.user_data["chat_id"],
+                            "user_id": context.user_data["user_id"]}
+        )
 
     if not current_users_status_users:
         error_msg = (
@@ -122,25 +131,16 @@ def start(update, context):
             )])
 
     keyboard_markup = InlineKeyboardMarkup(keyboard)
-    # TODO (Issue #26): bot send message logic is unnecessarily complex
-    if not is_callback and context.user_data.get("group_name"):
-        # This is the case where someone in a group just typed
-        # /modify_status_user
+    if not is_callback:
+        # This is the case where someone just typed /modify_status_user
         context.bot.send_message(
             context.user_data["user_id"], status_user_msg,
             reply_markup=keyboard_markup, parse_mode=ParseMode.MARKDOWN
         )
-    elif is_callback:
+    else:
         # This is the case where someone presses the "back" button to go back
         # to the home screen of the interface
         update.message.edit_text(
-            status_user_msg, reply_markup=keyboard_markup,
-            parse_mode=ParseMode.MARKDOWN
-        )
-    else:
-        # This is the case where someone in a private chat with the bot
-        # types in the /modify_status_user command
-        update.message.from_user.send_message(
             status_user_msg, reply_markup=keyboard_markup,
             parse_mode=ParseMode.MARKDOWN
         )
@@ -173,16 +173,19 @@ def edit_or_delete(update, context):
     context.user_data['status_user_to_modify'] = status_user_to_modify
     keyboard = [
         [
-            InlineKeyboardButton(f"{values.PENCIL_EMOJI} EDIT",
-                                 callback_data=f"edit_{update.data}"),
             InlineKeyboardButton(f"{values.CROSS_EMOJI} DELETE",
-                                 callback_data=f"delete_{update.data}"),
+                                 callback_data=f"delete_{update.data}")
         ],
         [
             InlineKeyboardButton(f"{values.LEFT_POINTING_EMOJI} GO BACK",
                                  callback_data="modify_status_user")
         ]
     ]
+    if status_user_to_modify["user_id"] == user_id:
+        keyboard[0].insert(0, InlineKeyboardButton(
+            f"{values.PENCIL_EMOJI} EDIT", callback_data=f"edit_{update.data}"
+        ))
+
     update.edit_message_text(
         status_user_msg, reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -670,12 +673,6 @@ def cancel(update, context):
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
     return MAIN_MENU
-
-def stop_cmds(update, context):
-    update.message.reply_text(
-        "All commands have been blocked until you finish the edit status "
-        "process, or do /cancel to cancel the process."
-    )
 
 def delete(update, context):
     if update.callback_query:

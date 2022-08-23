@@ -377,19 +377,3 @@ def cancel(update, context):
     )
     context.user_data.clear()
     return ConversationHandler.END
-
-def stop_cmds(update, context):
-    # TODO (Issue #25): This is not really blocking other bot commands properly
-    context.user_data["messages_to_delete"].append(update.message)
-    keyboard = [[
-        InlineKeyboardButton(
-            f"{values.CANCELLED_EMOJI} CANCEL",
-            callback_data=f"cancel"
-        ),
-    ]]
-    context.user_data["messages_to_delete"].append(update.message.reply_text(
-        "All commands have been blocked until you finish the add status "
-        "process, or choose to cancel to process",
-        reply_markup=InlineKeyboardMarkup(keyboard),
-        quote=True
-    ))
