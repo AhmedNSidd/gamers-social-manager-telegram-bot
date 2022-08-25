@@ -57,6 +57,15 @@ Normal users should be able to edit or delete their notify groups.
 Allows Notify Group creators to invite other users to their notify group, and
 provide an interface for the invited users to accept/decline the invite.
 
+It also provides an interface for the person who invited (the creator of the 
+notify group) to cancel the invitation.
+
+The command also ensures that any person who's being invited is not already a
+part of the notify group. If that person is already a part of the notify group,
+the creator of the invitation is informed of this in the interface that the
+creator uses to cancel invites.
+
+
 ## /list_notify_groups
 
 List all the Notify Groups in a group chat.

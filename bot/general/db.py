@@ -1,6 +1,5 @@
-import os
-
 from pymongo import MongoClient
+from pymongo.results import InsertOneResult
 from urllib.parse import urlparse, quote_plus
 
 
@@ -40,9 +39,9 @@ class DBConnection:
     def __del__(self):
         self.db.client.close()
 
-    def insert_one(self, collection_name, document):
+    def insert_one(self, collection_name, document) -> InsertOneResult:
         collection = self.db[collection_name]
-        collection.insert_one(document)
+        return collection.insert_one(document)
 
     def insert_many(self, collection_name, documents):
         collection = self.db[collection_name]
@@ -54,7 +53,7 @@ class DBConnection:
 
     def find(self, collection_name, query):
         collection = self.db[collection_name]
-        return collection.find(query)
+        return list(collection.find(query))
 
     def update_one(self, collection_name, filter, update):
         collection = self.db[collection_name]
