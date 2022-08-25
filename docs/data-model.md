@@ -67,8 +67,19 @@ corresponding to one notify group.
     'creator_id': <int>,
     'name': <str>,
     'description': <str|None>,
-    'invite_only': <bool>,
-    'members': <int[]>,
-    'invited': <text[]>
+    'members': <int[]>
+}
+```
+
+## notifygroupinvitation
+
+Each document in the notifygroupinvitation collection will contain the
+following schema corresponding to one invitation to a notify group.
+```
+{
+    '_id': <bson object id>,
+    'notify_group_id': <bson object id>,
+    'initially_invited': <int/str[]> # all users who were initially invited
+    'actively_invited': <int/str[]> # the users who have still yet to accept/reject an invite
 }
 ```

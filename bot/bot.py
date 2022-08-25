@@ -51,7 +51,7 @@ def main():
     ))
 
     # Setup the APIs
-    ApisWrapper()
+    # ApisWrapper()
 
     # Start the Bot
     if args.localprod:
@@ -72,13 +72,15 @@ def register_nonconversation_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("help", handlers.basic.help_message), 0)
     dispatcher.add_handler(CommandHandler("f", handlers.basic.f), 0)
     dispatcher.add_handler(CommandHandler("mf", handlers.basic.mf), 0)
+    dispatcher.add_handler(CommandHandler("age", handlers.basic.age), 0)
     dispatcher.add_error_handler(handlers.basic.error) # log all errors
+
     ## Register the non-conversation notify group command handlers
     dispatcher.add_handler(
         CommandHandler("list_notify_groups", handlers.notify_groups.utilities.list_notify_groups), 0
     )
     dispatcher.add_handler(
-        CommandHandler("join_notify_group", handlers.notify_groups.invitations.join), 0
+        CommandHandler("notify", handlers.notify_groups.utilities.notify), 0
     )
     ## Register the non-conversation status group command handlers
     dispatcher.add_handler(CommandHandler("status", handlers.status.display_status.status), 0)
@@ -233,12 +235,6 @@ def register_conversation_commands(dispatcher):
                     pattern="^skip_description$"
                 )
             ],
-            handlers.notify_groups.creation_and_modification.CHOOSING_JOINING_POLICY: [
-                CallbackQueryHandler(
-                    handlers.notify_groups.creation_and_modification.process_joining_policy,
-                    pattern="^(open|inviteonly)_joining_policy$"
-                )
-            ],
         },
         fallbacks=[
             CallbackQueryHandler(handlers.notify_groups.creation_and_modification.cancel, "^cancel$"),
@@ -260,7 +256,11 @@ def register_conversation_commands(dispatcher):
                 CallbackQueryHandler(
                     handlers.notify_groups.invitations.reply_to_invite,
                     pattern="^(accept|decline)_[0-9a-f]{24}$"
-                )
+                ),
+                CallbackQueryHandler(
+                    handlers.notify_groups.invitations.revoke_invitation,
+                    pattern="^revoke-invite_[0-9a-f]{24}$"
+                ),
             ]
         },
         fallbacks=[
