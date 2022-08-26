@@ -1,4 +1,5 @@
 from telegram import Bot
+from telegram.utils.helpers import escape_markdown
 from handlers.common import get_one_mention
 
 
@@ -11,12 +12,16 @@ def stringify_notify_group(bot: Bot, notify_group: dict):
     creator_mention = get_one_mention(
         bot, notify_group['creator_id'], notify_group['chat_id']
     )
+    notify_group_name = escape_markdown(notify_group["name"], 2)
+
+    notify_group_description = (escape_markdown(notify_group["description"], 2)
+                                if notify_group["description"] else "None")
 
     # Add group name and group description
     s = (
-        f"*{notify_group['name']}* _\(Created by {creator_mention}\)_\n"
+        f"*{notify_group_name}* _\(Created by {creator_mention}\)_\n"
         "__Group Description__\n"
-        f"`{notify_group['description']}`\n"
+        f"`{notify_group_description}`\n"
         "__Current Members__\n"
     )
     # Add current members

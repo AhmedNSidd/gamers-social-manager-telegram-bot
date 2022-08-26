@@ -73,8 +73,8 @@ def start(update, context):
         context.bot.send_message(
             context.user_data["user_id"],
             "Enter the *name* for the notify group you want to add to the "
-            f"_{context.user_data['group_name']}_ group e\.g\. "
-            "_Weeknight Gamers_",
+            f"_{context.user_data['group_name']}_ group  e\.g\. "
+            "_Weeknight\_Gamers_\n\n*Note* The name can NOT include spaces",
             parse_mode=ParseMode.MARKDOWN_V2,
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
@@ -92,6 +92,9 @@ def process_name(update, context):
             callback_data=f"cancel"
         ),
     ]]
+    # TODO: I'm not sure if I actually want to change this but I'm like 99%
+    # sure this endpoint can't be hit because you can't send empty messages in
+    # telegram. 
     if not name:
         # If the notify group name is empty, then send an error message.
         context.user_data["messages_to_delete"].append(
@@ -100,6 +103,21 @@ def process_name(update, context):
                 "a valid notify group name",
                 parse_mode=ParseMode.MARKDOWN_V2,
                 quote=True, reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        )
+        return TYPING_NAME
+
+    # Send an error message if the name contains a space
+    if ' ' in name:
+        alt_name = "\_".join(name.split(" "))
+        context.user_data["messages_to_delete"].append(
+            update.message.reply_text(
+                "You can not have a space in your notify group name\. Here's "
+                "an alternative notify group name that you can try instead: "
+                f"`{alt_name}`\n\nPlease enter a valid notify group name",
+                parse_mode=ParseMode.MARKDOWN_V2,
+                quote=True,
+                reply_markup=InlineKeyboardMarkup(keyboard)
             )
         )
         return TYPING_NAME
@@ -224,7 +242,7 @@ def process_description(update, context):
     send_loud_and_silent_message(
         context.bot,
         "Processing\.\.\.",
-        f"*{context.user_data['notify_group_to_add']['name']}* has been added "
+        f"`{context.user_data['notify_group_to_add']['name']}` has been added "
         f"as a notify group by {creator_mention}",
         context.user_data.get("chat_id"),
         parse_mode=ParseMode.MARKDOWN_V2
