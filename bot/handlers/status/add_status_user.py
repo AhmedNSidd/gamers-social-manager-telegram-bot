@@ -1,10 +1,12 @@
 import asyncio
 
 from aiohttp import ClientResponseError
+from handlers.common import get_one_mention, send_loud_and_silent_message
 from external_handlers.apis_wrapper import ApisWrapper
 from general import values
 from general.db import DBConnection
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram.error import Unauthorized
 from telegram.ext import ConversationHandler
 
 
@@ -24,53 +26,88 @@ def start(update, context):
         if context.user_data["chat_id"] != context.user_data["user_id"]
         else None
     )
+    user_mention = get_one_mention(context.bot, context.user_data["user_id"],
+                                   context.user_data["chat_id"])
     context.user_data["messages_to_delete"] = []
-    if context.user_data.get("group_name"):
-        # If process was started in a group, send a group message that the bot
-        # sent a private message
-        keyboard = [[
-            InlineKeyboardButton(
-                f"{values.RIGHT_POINTING_EMOJI} GO TO PRIVATE CHAT",
-                url=f"{values.BOT_URL}"
-            ),
-        ]]
-        update.message.reply_text(
-            f"Hey {update.message.from_user.first_name}\!\n\nI have sent you "
-            "a private message which you can respond to to add your status "
-            "user to this group",
-            reply_markup=InlineKeyboardMarkup(keyboard),
-            parse_mode=ParseMode.MARKDOWN_V2
-        )
-
     keyboard = [[
         InlineKeyboardButton(
             f"{values.CANCELLED_EMOJI} CANCEL",
             callback_data=f"cancel"
         ),
     ]]
-    context.user_data["messages_to_delete"].append(context.bot.send_message(
-        context.user_data["user_id"],
-        f"Hey {update.message.from_user.first_name}\!\n\nWe will add a status "
-        "user to " + (f"the _{context.user_data['group_name']}_ group "
-                      if context.user_data.get("group_name") else
-                      "this private chat") +
-        "I will ask you for your display name/Xbox Live/PSN/Steam IDs\. You "
-        "can choose to add these to your status user, or choose to skip if "
-        "would prefer to not connect these services to your status user\.\n\n"
-        "You can also choose to cancel the process of adding this status user "
-        "at any point during this process",
-        parse_mode=ParseMode.MARKDOWN_V2
-    ))
-    context.user_data["messages_to_delete"].append(context.bot.send_message(
-        context.user_data["user_id"],
-        "Enter the *display name* for the status user you want to add to " +
-        (f"the _{context.user_data['group_name']}_ group"
-         if context.user_data.get("group_name") else
-         "this private chat") +
-        "\n\nYou can not skip this entry",
-        parse_mode=ParseMode.MARKDOWN_V2,
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    ))
+    try:
+        context.user_data["messages_to_delete"].append(
+            send_loud_and_silent_message(
+                context.bot,
+                "Processing\.\.\.", 
+                f"Hey {user_mention}\!\n\nWe will add a status user to " + (
+                    f"the _{context.user_data['group_name']}_ group "
+                    if context.user_data.get("group_name") else
+                    "this private chat") +
+                "I will ask you for your display name/Xbox Live/PSN/Steam "
+                "IDs\. You can choose to add these to your status user, or "
+                "choose to skip if would prefer to not connect these services "
+                "to your status user\.\n\nYou can also choose to cancel the "
+                "process of adding this status user at any point during this "
+                "process",
+                context.user_data["user_id"],
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        )
+        context.user_data["messages_to_delete"].append(
+            send_loud_and_silent_message(
+                context.bot,
+                "Processing\.\.\.",
+                "Enter the *display name* for the status user you want to add "
+                "to " + (
+                    f"the _{context.user_data['group_name']}_ group"
+                    if context.user_data.get("group_name") else
+                    "this private chat") +
+                "\n\nYou can not skip this entry",
+                context.user_data["user_id"],
+                parse_mode=ParseMode.MARKDOWN_V2,
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        )
+    except Unauthorized:
+        if context.user_data.get("group_name"):
+            # If process was started in a group, send a group message that the
+            # bot was unable to send a private message
+            keyboard = [[
+                InlineKeyboardButton(
+                    f"{values.RIGHT_POINTING_EMOJI} GO TO BOT CHAT TO START "
+                                                                        "BOT",
+                    url=f"{values.BOT_URL}"
+                ),
+            ]]
+            update.message.reply_text(
+                f"Hey {user_mention}\!\n\nThe bot was unable to send you a "
+                "private message regarding adding a status user because you "
+                "have to start the bot privately first\. Click on the button "
+                "below, start the bot, then try running `/add_status_user` in "
+                "this group again",
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+            return ConversationHandler.END
+    else:
+        if context.user_data.get("group_name"):
+            # If process was started in a group, send a group message that the bot
+            # sent a private message
+            keyboard = [[
+                InlineKeyboardButton(
+                    f"{values.RIGHT_POINTING_EMOJI} GO TO PRIVATE CHAT",
+                    url=f"{values.BOT_URL}"
+                ),
+            ]]
+            update.message.reply_text(
+                f"Hey {user_mention}\!\n\nI have sent you a private message "
+                "which you can respond to to add your status user to this "
+                "group",
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+
     return TYPING_DISPLAY_NAME
 
 

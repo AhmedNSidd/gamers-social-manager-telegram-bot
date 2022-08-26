@@ -3,11 +3,13 @@ import asyncio
 
 from aiohttp import ClientResponseError
 from bson.objectid import ObjectId
+from handlers.common import get_one_mention
 from general import values
 from general.db import DBConnection
 from external_handlers.apis_wrapper import ApisWrapper
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
+from telegram.error import Unauthorized
 
 
 # Conversation stats for the CommandHandler for modify_status_user
@@ -38,6 +40,11 @@ def start(update, context):
     if not is_callback:
         context.user_data["user_id"] = update.message.from_user.id
         context.user_data["chat_id"] = update.message.chat.id
+        context.user_data["user_mention"] = get_one_mention(
+            context.bot,
+            context.user_data["user_id"],
+            context.user_data["chat_id"]
+        )
         context.user_data["group_name"] = (
             update.message.chat.title
             if context.user_data["chat_id"] != context.user_data["user_id"]
@@ -82,22 +89,6 @@ def start(update, context):
         return ConversationHandler.END
 
     if context.user_data.get("group_name"):
-        if not is_callback:
-            keyboard = [[
-                InlineKeyboardButton(
-                    f"{values.RIGHT_POINTING_EMOJI} GO TO PRIVATE CHAT",
-                    url=f"{values.BOT_URL}"
-                ),
-            ]]
-            update.message.reply_text(
-                f"Hey {update.message.from_user.first_name}\!\n\nI have sent "
-                "you a private message which you can use to modify your "
-                "status users connected to this group",
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode=ParseMode.MARKDOWN_V2,
-                quote=True
-            )
-
         my_status_users = {}
         other_status_users = {}
         for status_user in current_users_status_users:
@@ -109,10 +100,9 @@ def start(update, context):
                                    ] = status_user["display_name"]
 
         status_user_msg = (
-            "Choose to modify either your or someone else's status user in the"
-            f" _{context.user_data.get('group_name')}_ group\."
+            "Choose to modify either your or someone else's status user in "
+            f"the _{context.user_data.get('group_name')}_ group\."
         )
-
     else:
         my_status_users = {}
         for status_user in current_users_status_users:
@@ -146,19 +136,56 @@ def start(update, context):
             )])
 
     keyboard_markup = InlineKeyboardMarkup(keyboard)
-    if not is_callback:
-        # This is the case where someone just typed /modify_status_user
-        context.bot.send_message(
-            context.user_data["user_id"], status_user_msg,
-            reply_markup=keyboard_markup, parse_mode=ParseMode.MARKDOWN_V2
-        )
-    else:
+    if is_callback:
         # This is the case where someone presses the "back" button to go back
         # to the home screen of the interface
         update.message.edit_text(
             status_user_msg, reply_markup=keyboard_markup,
             parse_mode=ParseMode.MARKDOWN_V2
         )
+        return MAIN_MENU
+    
+    try:
+        # This is the case where someone just typed /modify_status_user
+        context.bot.send_message(
+            context.user_data["user_id"], status_user_msg,
+            reply_markup=keyboard_markup, parse_mode=ParseMode.MARKDOWN_V2
+        )
+    except Unauthorized:
+        if context.user_data.get("group_name"):
+            keyboard = [[
+                InlineKeyboardButton(
+                    f"{values.RIGHT_POINTING_EMOJI} GO TO BOT CHAT TO START "
+                                                                        "BOT",
+                    url=f"{values.BOT_URL}"
+                ),
+            ]]
+            update.message.reply_text(
+                f"Hey {context.user_data['user_mention']}\!\n\nThe bot was "
+                "unable to send you a private message regarding modifying a "
+                "status user because you have to start the bot privately "
+                "first\. Click on the button below, start the bot, then try "
+                "running `/modify_status_user` in this group again",
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                parse_mode=ParseMode.MARKDOWN_V2,
+                quote=True
+            )
+    else:
+        if context.user_data.get("group_name"):
+            keyboard = [[
+                InlineKeyboardButton(
+                    f"{values.RIGHT_POINTING_EMOJI} GO TO PRIVATE CHAT",
+                    url=f"{values.BOT_URL}"
+                ),
+            ]]
+            update.message.reply_text(
+                f"Hey {context.user_data['user_mention']}\!\n\nI have sent "
+                "you a private message which you can use to modify your "
+                "status users connected to this group",
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                parse_mode=ParseMode.MARKDOWN_V2,
+                quote=True
+            )
 
     return MAIN_MENU
 

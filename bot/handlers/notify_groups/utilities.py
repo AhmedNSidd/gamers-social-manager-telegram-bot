@@ -1,4 +1,3 @@
-from webbrowser import get
 from telegram import ParseMode
 from general.db import DBConnection
 from handlers.common import get_one_mention, send_loud_and_silent_message
