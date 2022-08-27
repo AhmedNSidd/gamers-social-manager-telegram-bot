@@ -59,7 +59,6 @@ def invite(update, context):
         "notifygroups",
         {"chat_id": chat_id, "name": notify_group_name}
     )
-    
 
     # Cancel command if the notify group doesn't exist
     if not notify_group:
@@ -128,13 +127,15 @@ def invite(update, context):
         )
         return ConversationHandler.END
 
-    invited_users_identifiers = list(invited_users_identifiers)
-    # Create a notify group invite in the database
-    invitation_id = DBConnection().insert_one("notifygroupinvitation", {
-        "notify_group_id": notify_group["_id"],
-        "initially_invited": invited_users_identifiers,
-        "actively_invited": invited_users_identifiers,
-    }).inserted_id
+    # Update invited list of the notify group with the new invited users
+    notify_group["invited"] = list(invited_users_identifiers)
+    DBConnection().update_one(
+        "notifygroups",
+        {"_id": notify_group["_id"]},
+        {
+            "$set": notify_group
+        }
+    )
 
     # Send an interface to the creator of the notify group for them to see
     # who didn't get invited and for them to be able to revoke their invite
@@ -145,7 +146,7 @@ def invite(update, context):
         [
             InlineKeyboardButton(
                 f"{values.CANCELLED_EMOJI} REVOKE INVITE",
-                callback_data=f"revoke-invite_{invitation_id}"
+                callback_data=f"revoke-invite_{notify_group['_id']}"
             )
         ]
     ]
@@ -178,8 +179,7 @@ def invite(update, context):
     )
 
     # Finally, send the message to the creator of the notify group
-    invitation_manager_key = f"invitation_manager_msg_{invitation_id}"
-    context.bot_data[invitation_manager_key] = send_loud_and_silent_message(
+    mgr_msg = send_loud_and_silent_message(
         context.bot,
         base_invitation_manager_msg_text,
         base_invitation_manager_msg_text + extra_invitation_manager_msg_text,
@@ -196,22 +196,22 @@ def invite(update, context):
         [
             InlineKeyboardButton(
                 f"{values.CROSS_EMOJI} DECLINE",
-                callback_data=f"decline_{invitation_id}"
+                callback_data=f"decline_{notify_group['_id']}"
             ),
             InlineKeyboardButton(
                 f"{values.CHECKMARK_EMOJI} ACCEPT",
-                callback_data=f"accept_{invitation_id}"
+                callback_data=f"accept_{notify_group['_id']}"
             )
         ]
     ]
 
+    # Get the user mentions of all the users who were invited
     user_mentions_str = get_many_mentions(
         context.bot, chat_id, invited_users_identifiers, " "
     )
 
     # Send the message to the invited users for the notify group
-    invitation_msg_key = f"invitation_msg_{invitation_id}"
-    context.bot_data[invitation_msg_key] = send_loud_and_silent_message(
+    inv_msg = send_loud_and_silent_message(
         context.bot,
         user_mentions_str,
         f"{user_mentions_str} You have been invited to the "
@@ -222,8 +222,16 @@ def invite(update, context):
         f"{stringify_notify_group(context.bot, notify_group)}",
         chat_id,
         parse_mode=ParseMode.MARKDOWN_V2,
-        reply_markup=InlineKeyboardMarkup(keyboard),
+        reply_markup=InlineKeyboardMarkup(keyboard)
     )
+
+    context.chat_data[f"{notify_group['_id']}"] = {
+        "actively_invited": set(invited_users_identifiers),
+        "initially_invited": set(invited_users_identifiers),
+        "inv_msg": inv_msg,
+        "mgr_msg": mgr_msg
+    }
+
     return WAITING_FOR_REPLY
 
 
@@ -233,31 +241,33 @@ def reply_to_invite(update, context):
     """
     update = update.callback_query
     update.answer()
-    reply, invitation_id = update.data.split("_")
+    reply, notify_group_id = update.data.split("_")
     curr_user_id = update.from_user.id
-    curr_username = f"@{update.from_user.username}"
     chat_id = update.message.chat.id
+    curr_username = (f"@{update.from_user.username}"
+                     if update.from_user.username else None)
 
-    # Grab the notify group from the db
-    notify_group_invitation = DBConnection().find_one(
-        "notifygroupinvitation",
-        {"_id": ObjectId(invitation_id)}
-    )
+    # Get the notify group from the notify group id
     notify_group = DBConnection().find_one(
         "notifygroups",
-        {"_id": ObjectId(notify_group_invitation["notify_group_id"])}
+        {"_id": ObjectId(notify_group_id)}
     )
+
     # Silently cancel command if the notify group doesn't exist anymore
-    if not notify_group:
-        clear_invitations_data(context, notify_group_invitation["_id"])
+    if not notify_group or not notify_group_id in context.chat_data:
+        # Remove the invites data for that notify group
+        context.chat_data.pop(notify_group_id)
         return ConversationHandler.END
+    
+    notify_group_invitation = context.chat_data[notify_group_id]
 
     # Remove users who were in the invited list and stop any users who are not
     # in the invited list
-    if curr_user_id in notify_group_invitation["actively_invited"]:
-        notify_group_invitation["actively_invited"].remove(curr_user_id)
-    elif (curr_username and
-          curr_username in notify_group_invitation["actively_invited"]):
+    if curr_user_id in notify_group["invited"]:
+        notify_group["invited"].remove(curr_user_id)
+        notify_group_invitation["actively_invited"].remove(curr_user_id)   
+    elif curr_username and curr_username in notify_group["invited"]:
+        notify_group["invited"].remove(curr_username)
         notify_group_invitation["actively_invited"].remove(curr_username)
     else:
         return WAITING_FOR_REPLY
@@ -265,28 +275,21 @@ def reply_to_invite(update, context):
     # At this point, anybody who wasn't invited to the closed group has been
     # booted.
 
-    # Update the database with the updated invited members list
-    DBConnection().update_one(
-        "notifygroupinvitation",
-        {"_id": notify_group_invitation["_id"]},
-        {
-            "$set": notify_group_invitation
-        }
-    )
-
     # If the user reply is accept and user doesn't exist in the members list,
     # add the user id to the members list
     if reply == "accept" and not curr_user_id in notify_group["members"]:
         # Update members list with the current user id
         notify_group["members"].append(curr_user_id)
-        # Save invited users and member changes in the db
-        DBConnection().update_one(
-            "notifygroups",
-            {"_id": notify_group["_id"]},
-            {
-                "$set": notify_group
-            }
-        )
+
+    # Save invited users and maybe member changes in the db
+    DBConnection().update_one(
+        "notifygroups",
+        {"_id": notify_group["_id"]},
+        {
+            "$set": notify_group
+        }
+    )
+
     # Get the users mentions for the updated invited members
     invited_members_mentions_str = get_many_mentions(
         context.bot, chat_id, notify_group_invitation["initially_invited"], " "
@@ -295,30 +298,27 @@ def reply_to_invite(update, context):
         creator_mention = get_one_mention(
             context.bot, notify_group["creator_id"], chat_id
         )
-        key = f"invitation_msg_{notify_group_invitation['_id']}"
-        context.bot_data[key].edit_text(
-            f"{invited_members_mentions_str} You have successfully responded "
-            f"to the invitation to `{notify_group['name']}` notify group sent "
-            f"out by {creator_mention}\. Below are the details of this notify "
-            f"group:\n\n{stringify_notify_group(context.bot, notify_group)}",
-            parse_mode=ParseMode.MARKDOWN_V2
-        )
-        key = f"invitation_manager_msg_{notify_group_invitation['_id']}"
-        context.bot_data[key].edit_text(
+        notify_group_invitation["mgr_msg"].edit_text(
             f"{creator_mention} The invited users have successfully responded "
             "to the invite so you can no longer revoke the invitation\. You "
             f"can however enter `/modify_notify_group {notify_group['name']}` "
             "to remove any members from your notify group",
             parse_mode=ParseMode.MARKDOWN_V2
         )
+        notify_group_invitation["inv_msg"].edit_text(
+            f"{invited_members_mentions_str} You have successfully responded "
+            f"to the invitation to `{notify_group['name']}` notify group sent "
+            f"out by {creator_mention}\. Below are the details of this notify "
+            f"group:\n\n{stringify_notify_group(context.bot, notify_group)}",
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
         # End the conversation if there are no more invited users
-        clear_invitations_data(context, notify_group_invitation["_id"])
+        context.chat_data.pop(notify_group_id)
         return ConversationHandler.END
 
     # Update the interface for the invited users with the updated invited
     # members
-    key = f"invitation_msg_{notify_group_invitation['_id']}"
-    context.bot_data[key].edit_text(
+    notify_group_invitation["inv_msg"].edit_text(
         f"{invited_members_mentions_str} You have been invited to the "
         f"`{notify_group['name']}` notify group\. Below are the details "
         "of this group\. You can choose to either accept this invite so "
@@ -339,67 +339,52 @@ def revoke_invitation(update, context):
     """
     update = update.callback_query
     update.answer()
-    _, notify_group_invitation_id = update.data.split("_")
+    _, notify_group_id = update.data.split("_")
     curr_user_id = update.from_user.id
     chat_id = update.message.chat.id
 
-
     # Grab the notify group from the db
-    notify_group_invitation = DBConnection().find_one(
-        "notifygroupinvitation",
-        {"_id": ObjectId(notify_group_invitation_id)}
-    )
-
-    # Sanity check, this should never happen according to the logic defined in
-    # the rest of the handlers (since this endpoint should never be able to be
-    # hit if the invitation doesnt even exist)
-    if not notify_group_invitation:
-        clear_invitations_data(context, notify_group_invitation["_id"])
-        return ConversationHandler.END
-
     notify_group = DBConnection().find_one(
         "notifygroups",
-        {"_id": notify_group_invitation["notify_group_id"]}
+        {"_id": ObjectId(notify_group_id)}
     )
 
+    # Cancel command if the notify group has been deleted
     if not notify_group:
         # TODO: Maybe edit the interface messages to update the user that the
         # notify group doesn't exist
-        DBConnection().delete_one(
-            "notifygroupinvitation",
-            {"_id": notify_group_invitation["_id"]}
-        )
-        clear_invitations_data(context, notify_group_invitation["_id"])
+        context.chat_data.pop(notify_group_id)
         return ConversationHandler.END
-
+    
     # Ignore request if current user is not the creator of the notify group
     if notify_group["creator_id"] != curr_user_id:
         return WAITING_FOR_REPLY
 
-    DBConnection().delete_one(
-        "notifygroupinvitation",
-        {"_id": notify_group_invitation["_id"]}
+    # Remove all invited users from the invite
+    DBConnection().update_one(
+        "notify_group",
+        {"_id": notify_group["_id"]},
+        {
+            "$set": {
+                "invited": []
+            }
+        }
     )
- 
-    if notify_group:
-        key = f"invitation_manager_msg_{notify_group_invitation_id}"
-        creator_mention = get_one_mention(
-            context.bot, notify_group["creator_id"], chat_id
-        )
+
+    # Get the mention for the creator and the interfaces messages 
+    creator_mention = get_one_mention(
+        context.bot, notify_group["creator_id"], chat_id
+    )
+    if notify_group_id in context.chat_data:
         # Update the interfaces for both the creator and invited users.
-        context.bot_data[key].edit_text(
-            f"{creator_mention}\n\n"
-            f"{values.CANCELLED_EMOJI} You have successfully revoked the "
-            f"invite to the `{notify_group['name']}` notify group",
+        context.chat_data[notify_group_id]["mgr_msg"].edit_text(
+            f"{creator_mention}\n\n{values.CANCELLED_EMOJI} You have "
+            f"successfully revoked the invite to the `{notify_group['name']}` "
+            "notify group",
             parse_mode=ParseMode.MARKDOWN_V2
         )
+        context.chat_data[notify_group_id]["inv_msg"].delete()
+        context.chat_data.pop(notify_group_id)
 
-    key = f"invitation_msg_{notify_group_invitation['_id']}"
-    context.bot_data[key].delete()
-    clear_invitations_data(context, notify_group_invitation["_id"])
+    # End the conversation
     return ConversationHandler.END
-
-
-def clear_invitations_data(context, invitation_id):
-    del context.bot_data[f"invitation_manager_msg_{invitation_id}"]
-    del context.bot_data[f"invitation_msg_{invitation_id}"]

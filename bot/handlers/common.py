@@ -1,5 +1,5 @@
 from general import strings
-from telegram import Bot
+from telegram import Bot, Message
 from telegram.ext import ConversationHandler
 from telegram.utils.helpers import mention_markdown, escape_markdown
 
@@ -59,7 +59,7 @@ def get_many_mentions(bot: Bot, chat_id: int, user_identifiers: list, separator=
     return user_mentions_str
 
 
-def send_loud_and_silent_message(bot: Bot, initial_text: str, final_text: str, chat_id: int, **msg_kwargs):
+def send_loud_and_silent_message(bot: Bot, initial_text: str, final_text: str, chat_id: int, **msg_kwargs) -> Message:
     """
     This function is used to send a message with initial text that will notify
     other users if they are tagged in the initial text. The bot will then edit

@@ -1,7 +1,6 @@
 from telegram import Bot, ChatMember
 from telegram.utils.helpers import escape_markdown
-from general.db import DBConnection
-from handlers.common import get_one_mention
+from handlers.common import get_one_mention, get_many_mentions
 
 
 def stringify_notify_group(bot: Bot, notify_group: dict):
@@ -45,30 +44,17 @@ def stringify_notify_group(bot: Bot, notify_group: dict):
         members_str = "`None`"
 
 
-    # Add current invited users
-    notify_group_invitations = DBConnection().find(
-        "notifygroupinvitation", {"notify_group_id": notify_group["_id"]}
-    )
-
-    if notify_group_invitations:
-        invited_str = ""
-        all_actively_invited_mentions = set([])
-        for invitation in notify_group_invitations:
-            for invitee_identifier in invitation["actively_invited"]:
-                if type(invitee_identifier) == str:
-                    all_actively_invited_mentions.add(invitee_identifier)
-                else:
-                    all_actively_invited_mentions.add(get_one_mention(
-                        bot, invitee_identifier, notify_group["chat_id"]
-                    ))
-
-        for mention in all_actively_invited_mentions:
-            invited_str += f"{mention}\n"
+    invited_str = ""
+    if notify_group["invited"]:
+        invited_users_identifiers = [user_identifier for user_identifier
+                                     in notify_group["invited"]]
+        invited_str += get_many_mentions(bot, notify_group["chat_id"],
+                                         invited_users_identifiers)
     else:
         invited_str = "`None`"
 
     return (
-        f"*{notify_group_name}* _\(Created by {creator_mention}\)_\n"
+        f"`{notify_group_name}` _\(Created by {creator_mention}\)_\n"
         "__Group Description__\n"
         f"`{notify_group_description}`\n"
         "__Current Members__\n"
