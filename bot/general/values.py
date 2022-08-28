@@ -56,3 +56,6 @@ BOT_URL = "https://t.me/GamersSocialManagerBot"
 TOKEN = os.environ.get("GSM_TG_BOT_TOKEN")
 XBOX_CLIENT_SECRET_EXPIRY_DATE = datetime.datetime.strptime("Jun 16, 2024", "%b %d, %Y").date()
 
+OBIWAN_HELLO_THERE_GIF_FILEPATH = "media/obiwans-hello-there.mp4"
+F_TO_PAY_RESPECT_GIF_FILEPATH = "media/f-to-pay-respect.gif"
+MISSION_FAILED_AUDIO_FILEPATH = "media/mission-failed.mp3"

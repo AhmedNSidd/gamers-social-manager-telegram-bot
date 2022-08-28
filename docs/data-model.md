@@ -67,7 +67,8 @@ corresponding to one notify group.
     'creator_id': <int>,
     'name': <str>,
     'description': <str|None>,
-    'members': <int[]>
+    'members': <int[]>,
+    'invited': <int/str[]> # can be usernames 
 }
 ```
 

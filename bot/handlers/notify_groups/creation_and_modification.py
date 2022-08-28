@@ -4,6 +4,7 @@ from general import values
 from general.db import DBConnection
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
+from telegram.error import Unauthorized
 
 
 # Conversation states for the CommandHandler for add_status_user
@@ -36,49 +37,70 @@ def start(update, context):
         "chat_id": context.user_data["chat_id"],
         "creator_id": context.user_data["user_id"]
     }
-    # If process was started in a group, send a group message that the bot
-    # sent a private message
-    keyboard = [[
-        InlineKeyboardButton(
-            f"{values.RIGHT_POINTING_EMOJI} GO TO PRIVATE CHAT",
-            url=f"{values.BOT_URL}"
-        ),
-    ]]
-    update.message.reply_text(
-        f"Hey {update.message.from_user.first_name}\!\n\nI have sent you "
-        "a private message which you can respond to to add a notify group to "
-        "this group",
-        reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode=ParseMode.MARKDOWN_V2
+    user_mention = get_one_mention(
+        context.bot, context.user_data["user_id"], context.user_data["chat_id"]
     )
-
-    keyboard = [[
-        InlineKeyboardButton(
-            f"{values.CANCELLED_EMOJI} CANCEL",
-            callback_data=f"cancel"
-        ),
-    ]]
-    context.user_data["messages_to_delete"].append(
-        context.bot.send_message(
-            context.user_data["user_id"],
-            f"Hey {update.message.from_user.first_name}\!\n\nWe will add a "
-            f"notify group to the _{context.user_data['group_name']}_ group\."
-            "\n\nI will ask you for the name and description for this group\."
-            "\n\nYou can choose to cancel the process of adding this notify "
-            "group at any point during this process",
+    try:
+        keyboard = [[
+            InlineKeyboardButton(
+                f"{values.CANCELLED_EMOJI} CANCEL",
+                callback_data=f"cancel"
+            ),
+        ]]
+        context.user_data["messages_to_delete"].append(
+            context.bot.send_message(
+                context.user_data["user_id"],
+                f"Hey {update.message.from_user.first_name}\!\n\nWe will add "
+                f"a notify group to the _{context.user_data['group_name']}_ "
+                "group\.\n\nI will ask you for the name and description for "
+                "this group\.\n\nYou can choose to cancel the process of "
+                "adding this notify group at any point during this process",
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        )
+        context.user_data["messages_to_delete"].append(
+            context.bot.send_message(
+                context.user_data["user_id"],
+                "Enter the *name* for the notify group you want to add to the "
+                f"_{context.user_data['group_name']}_ group  e\.g\. "
+                "_Weeknight\_Gamers_\n\n*Note* The name can NOT include "
+                "spaces",
+                parse_mode=ParseMode.MARKDOWN_V2,
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        )
+    except Unauthorized:
+        # send a group message that the bot was unable to send a private message
+        keyboard = [[
+            InlineKeyboardButton(
+                f"{values.RIGHT_POINTING_EMOJI} GO TO PRIVATE CHAT",
+                url=f"{values.BOT_URL}"
+            ),
+        ]]
+        update.message.reply_text(
+            f"Hey {context.user_data['user_mention']}\!\n\nThe bot was unable "
+            "to send you a private message regarding adding a notify group "
+            "because you have to start the bot privately first\. Click on the "
+            "the button below, start the bot, then try running "
+            "`/add_notify_group` in this group again",
+            reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode=ParseMode.MARKDOWN_V2
         )
-    )
-    context.user_data["messages_to_delete"].append(
-        context.bot.send_message(
-            context.user_data["user_id"],
-            "Enter the *name* for the notify group you want to add to the "
-            f"_{context.user_data['group_name']}_ group e\.g\. "
-            "_Weeknight Gamers_",
-            parse_mode=ParseMode.MARKDOWN_V2,
-            reply_markup=InlineKeyboardMarkup(keyboard)
+    else:
+        # send a group message that the bot sent a private message
+        keyboard = [[
+            InlineKeyboardButton(
+                f"{values.RIGHT_POINTING_EMOJI} GO TO PRIVATE CHAT",
+                url=f"{values.BOT_URL}"
+            ),
+        ]]
+        update.message.reply_text(
+            f"Hey {user_mention}\!\n\nI have sent you a private message which "
+            "you can respond to to add a notify group to this group",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode=ParseMode.MARKDOWN_V2
         )
-    )
+
     return TYPING_NAME
 
 
@@ -92,6 +114,9 @@ def process_name(update, context):
             callback_data=f"cancel"
         ),
     ]]
+    # TODO: I'm not sure if I actually want to change this but I'm like 99%
+    # sure this endpoint can't be hit because you can't send empty messages in
+    # telegram. 
     if not name:
         # If the notify group name is empty, then send an error message.
         context.user_data["messages_to_delete"].append(
@@ -100,6 +125,21 @@ def process_name(update, context):
                 "a valid notify group name",
                 parse_mode=ParseMode.MARKDOWN_V2,
                 quote=True, reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        )
+        return TYPING_NAME
+
+    # Send an error message if the name contains a space
+    if ' ' in name:
+        alt_name = "\_".join(name.split(" "))
+        context.user_data["messages_to_delete"].append(
+            update.message.reply_text(
+                "You can not have a space in your notify group name\. Here's "
+                "an alternative notify group name that you can try instead: "
+                f"`{alt_name}`\n\nPlease enter a valid notify group name",
+                parse_mode=ParseMode.MARKDOWN_V2,
+                quote=True,
+                reply_markup=InlineKeyboardMarkup(keyboard)
             )
         )
         return TYPING_NAME
@@ -224,7 +264,7 @@ def process_description(update, context):
     send_loud_and_silent_message(
         context.bot,
         "Processing\.\.\.",
-        f"*{context.user_data['notify_group_to_add']['name']}* has been added "
+        f"`{context.user_data['notify_group_to_add']['name']}` has been added "
         f"as a notify group by {creator_mention}",
         context.user_data.get("chat_id"),
         parse_mode=ParseMode.MARKDOWN_V2
