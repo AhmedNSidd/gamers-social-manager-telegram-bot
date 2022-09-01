@@ -25,7 +25,7 @@ def start(update, context):
 
 
 
-def help_message(update, context):
+def help(update, context):
     """Send a message when the command /help is issued."""
     update.message.reply_text(values.help_message, parse_mode=ParseMode.MARKDOWN_V2)
 

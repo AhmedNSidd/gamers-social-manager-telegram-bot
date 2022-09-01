@@ -75,7 +75,7 @@ def start(update, context):
             )
         else:
             error_msg = (
-                "You have no status users to modify in this private chat. "
+                "You have no status users to modify in this private chat\. "
                 "Please add one first by entering `/add_status_user` in this "
                 "chat"
             )
