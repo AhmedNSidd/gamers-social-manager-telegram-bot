@@ -23,8 +23,11 @@ def status(update, context):
     e2 = time.time()
     print('Time to get presence from API:', e2-e1, 'seconds')
     if not players:
-        message.edit_text("You have no status users set to display the status "
-                          "of\. Use /add_status_user to add a status user")
+        message.edit_text(
+            "You have no status users set to display the status of\. Use "
+            "`/add_status_user` to add a status user",
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
         return
     players = [str(player) for player in players]
     e3 = time.time()

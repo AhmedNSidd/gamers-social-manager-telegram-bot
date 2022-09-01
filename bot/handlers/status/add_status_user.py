@@ -5,6 +5,7 @@ from handlers.common import get_one_mention, send_loud_and_silent_message
 from external_handlers.apis_wrapper import ApisWrapper
 from general import values
 from general.db import DBConnection
+from handlers.status.common import stringify_status_user
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.error import Unauthorized
 from telegram.ext import ConversationHandler
@@ -26,6 +27,11 @@ def start(update, context):
         if context.user_data["chat_id"] != context.user_data["user_id"]
         else None
     )
+    context.user_data["status_user"] = {
+        "user_id": context.user_data["user_id"],
+        "chat_id": context.user_data["chat_id"],
+        "group_name": context.user_data["group_name"]
+    }
     user_mention = get_one_mention(context.bot, context.user_data["user_id"],
                                    context.user_data["chat_id"])
     context.user_data["messages_to_delete"] = []
@@ -147,7 +153,7 @@ def process_display_name(update, context):
         return TYPING_DISPLAY_NAME
 
     # if we've gotten here, it means the display name is unique.
-    context.user_data["display_name"] = display_name
+    context.user_data["status_user"]["display_name"] = display_name
     keyboard = [[
         InlineKeyboardButton(
             f"{values.CANCELLED_EMOJI} CANCEL",
@@ -164,7 +170,7 @@ def process_display_name(update, context):
 
     context.bot.send_message(
         context.user_data.get("user_id"),
-        f"Great\! Your display name has been set as *{display_name}*\n\n",
+        f"Great\! Your display name has been set as `{display_name}`\n\n",
         parse_mode=ParseMode.MARKDOWN_V2
     )
 
@@ -210,6 +216,7 @@ def process_xbox_gamertag(update, context):
 
     if is_callback and xbox_gamertag == "skip_xbox_gamertag":
         status_msg_prefix = f"Skipped Xbox Live setup\n\n"
+        context.user_data["status_user"]["xbox_gamertag"] = None
     else:
         context.user_data["messages_to_delete"].append(update.message.reply_text(
             f"{values.RAISED_HAND_EMOJI} Please hold as we process your Xbox "
@@ -218,7 +225,7 @@ def process_xbox_gamertag(update, context):
             quote=True
         ))
         try:
-            context.user_data["xbox_account_id"] = asyncio.run(
+            context.user_data["status_user"]["xbox_account_id"] = asyncio.run(
                 ApisWrapper().get_account_id_from_gamertag(xbox_gamertag)
             )
         except ClientResponseError as cre:
@@ -231,9 +238,9 @@ def process_xbox_gamertag(update, context):
                 )
                 return TYPING_XBOX_GAMERTAG
 
-        context.user_data["xbox_gamertag"] = xbox_gamertag
+        context.user_data["status_user"]["xbox_gamertag"] = xbox_gamertag
         status_msg_prefix = ("Great\! Your Xbox Gamertag has been set as "
-                             f"*{xbox_gamertag}*\n\n")
+                             f"`{xbox_gamertag}`\n\n")
 
     while len(context.user_data["messages_to_delete"]) > 1:
         old_message = context.user_data["messages_to_delete"].pop()
@@ -309,6 +316,8 @@ def process_psn_online_id(update, context):
 
     if is_callback and psn_online_id == "skip_psn_online_id":
         status_msg_prefix = "Skipped PSN setup\n\n"
+        context.user_data["status_user"]["psn_online_id"] = None
+        context.user_data["status_user"]["psn_account_id"] = None
     else:
         context.user_data["messages_to_delete"].append(update.message.reply_text(
             f"{values.RAISED_HAND_EMOJI} Please hold as we process your PSN "
@@ -317,7 +326,7 @@ def process_psn_online_id(update, context):
             quote=True
         ))
         try:
-            context.user_data['psn_account_id'] = asyncio.run(
+            context.user_data["status_user"]["psn_account_id"] = asyncio.run(
                 ApisWrapper().get_account_id_from_online_id(psn_online_id)
             )
         except ClientResponseError as cre:
@@ -330,26 +339,26 @@ def process_psn_online_id(update, context):
                 )
                 return TYPING_PSN_ONLINE_ID
 
-        context.user_data["psn_online_id"] = psn_online_id
+        context.user_data["status_user"]["psn_online_id"] = psn_online_id
         status_msg_prefix = ("Great\! Your PSN Online ID has been set as "
-                             f"*{psn_online_id}*\n\n")
+                             f"`{psn_online_id}`\n\n")
 
     while len(context.user_data["messages_to_delete"]) > 1:
         old_message = context.user_data["messages_to_delete"].pop()
         old_message.delete()
 
-    del context.user_data["messages_to_delete"]
-
     ret = process_new_status_user(context)
     if type(ret) == int:
         return ret
+    
+    del context.user_data["messages_to_delete"]
 
     if context.user_data.get("group_name"):
         mention = (f"[{username}](tg://user?id="
                    f"{context.user_data.get('user_id')})")
         context.bot.send_message(
             context.user_data.get("chat_id"),
-            f"*{context.user_data.get('display_name')}* has been added to the "
+            f"`{context.user_data.get('display_name')}` has been added to the "
             f"/status command by {mention}",
             parse_mode=ParseMode.MARKDOWN_V2
         )
@@ -363,18 +372,8 @@ def process_psn_online_id(update, context):
     context.bot.send_message(
         context.user_data["user_id"],
         f"*You've successfully added a new status user\.* Below are the "
-        "details of your new status user:\n\n"
-        "__Display Name__\n"
-        f"`{context.user_data['display_name']}`\n\n"
-        "__Xbox Gamertag__\n"
-        f"`{context.user_data.get('xbox_gamertag')}`\n\n"
-        "__PSN Online ID__"
-        f"\n`{context.user_data.get('psn_online_id')}`\n\n"
-        "Added by [you]"
-        f"(tg://user?id={context.user_data['user_id']}) in " +
-        (f"the _{context.user_data['group_name']}_ group"
-         if context.user_data.get("group_name") else
-         "this private chat"),
+        "details of your new status user:\n\n" +
+        stringify_status_user(context.bot, context.user_data["status_user"]),
         parse_mode=ParseMode.MARKDOWN_V2
     )
     context.user_data.clear()
@@ -382,8 +381,8 @@ def process_psn_online_id(update, context):
 
 
 def process_new_status_user(context):
-    if (not context.user_data.get("xbox_gamertag") and
-            not context.user_data.get("psn_online_id")):
+    if (not context.user_data["status_user"]["xbox_gamertag"] and
+        not context.user_data["status_user"]["psn_online_id"]):
         keyboard = [[
             InlineKeyboardButton(
                 f"{values.CANCELLED_EMOJI} CANCEL",
@@ -407,7 +406,7 @@ def process_new_status_user(context):
 
     DBConnection().insert_one(
         "statususers",
-        context.user_data
+        context.user_data["status_user"]
     )
 
 

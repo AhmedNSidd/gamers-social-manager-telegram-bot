@@ -7,6 +7,7 @@ from handlers.common import get_one_mention
 from general import values
 from general.db import DBConnection
 from external_handlers.apis_wrapper import ApisWrapper
+from handlers.status.common import stringify_status_user
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
 from telegram.error import Unauthorized
@@ -170,6 +171,7 @@ def start(update, context):
                 parse_mode=ParseMode.MARKDOWN_V2,
                 quote=True
             )
+        return ConversationHandler.END
     else:
         if context.user_data.get("group_name"):
             keyboard = [[
@@ -200,19 +202,6 @@ def edit_or_delete(update, context):
     status_user_to_modify = DBConnection().find_one("statususers",
                                                     query_for_status_user)
 
-    status_user_msg = (
-        "__Display Name__\n"
-        f"`{status_user_to_modify['display_name']}`\n\n"
-        "__Xbox Gamertag__\n"
-        f"`{status_user_to_modify['xbox_gamertag']}`\n\n"
-        "__PSN Online ID__"
-        f"\n`{status_user_to_modify['psn_online_id']}`\n\n" +
-        (f"Added by [this user]"
-         f"(tg://user?id={status_user_to_modify['user_id']})"
-         if status_user_to_modify["user_id"] != user_id else
-         "Added by [you]"
-         f"(tg://user?id={status_user_to_modify['user_id']})")
-    )
     context.user_data['status_user_to_modify'] = status_user_to_modify
     keyboard = [
         [
@@ -230,7 +219,8 @@ def edit_or_delete(update, context):
         ))
 
     update.edit_message_text(
-        status_user_msg, reply_markup=InlineKeyboardMarkup(keyboard),
+        stringify_status_user(context.bot, status_user_to_modify),
+        reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN_V2
     )
 
@@ -243,7 +233,6 @@ def edit(update, context):
         update.answer()
 
     user_id = context.user_data.get("user_id")
-    group_name = context.user_data['group_name']
     status_user_to_edit = context.user_data.get("status_user_to_modify")
 
     update.message.delete()
@@ -251,7 +240,7 @@ def edit(update, context):
     context.user_data["messages"].append(context.bot.send_message(
         user_id,
         f"Hey {update.from_user.first_name}\! We will edit the status user "
-        f"*{status_user_to_edit['display_name']}*\n\nI will "
+        f"`{status_user_to_edit['display_name']}`\n\nI will "
         "ask you to edit your display name/Xbox Live/PSN/Steam IDs\. You can "
         "choose to edit these to something else, or choose to skip if you "
         "would prefer not to edit these entries and leave them as it is\.\n\n"
@@ -264,15 +253,8 @@ def edit(update, context):
     ))
     context.user_data["messages"].append(context.bot.send_message(
         user_id,
-        "Below are the details of the status user you're editing:\n\n"
-        "__Display Name__\n"
-        f"`{status_user_to_edit['display_name']}`\n\n"
-        "__Xbox Gamertag__\n"
-        f"`{status_user_to_edit['xbox_gamertag']}`\n\n"
-        "__PSN Online ID__\n"
-        f"`{status_user_to_edit['psn_online_id']}`\n\n" +
-        f"Added by [you](tg://user?id={user_id}) in " +
-        (f"the _{group_name}_ group" if group_name else "this private chat"),
+        "Below are the details of the status user you're editing:\n\n" + 
+        stringify_status_user(context.bot, status_user_to_edit),
         parse_mode=ParseMode.MARKDOWN_V2
     ))
     keyboard = [[
@@ -288,7 +270,7 @@ def edit(update, context):
     context.user_data["messages"].append(context.bot.send_message(
         user_id,
         "Enter the new *display name* for your status user \(currently set as "
-        f"*{status_user_to_edit['display_name']}*\)",
+        f"`{status_user_to_edit['display_name']}`\)",
         parse_mode=ParseMode.MARKDOWN_V2,
         reply_markup=InlineKeyboardMarkup(keyboard)
     ))
@@ -364,7 +346,7 @@ def process_display_name(update, context):
         display_name_edit_msg = "Skipped editting your display name"
     else:
         display_name_edit_msg = (
-            f"Great\! Your display name has been set as *{new_display_name}*"
+            f"Great\! Your display name has been set as `{new_display_name}`"
         )
         status_user_to_edit["display_name"] = new_display_name
 
@@ -398,7 +380,7 @@ def process_display_name(update, context):
     context.user_data["messages"].append(context.bot.send_message(
         user_id,
         "Enter the new *Xbox Gamertag* \(currently " +
-        (f"set as *{status_user_to_edit['xbox_gamertag']}*\)"
+        (f"set as `{status_user_to_edit['xbox_gamertag']}`\)"
          if status_user_to_edit['xbox_gamertag'] else
          "not set as anything\)"),
         reply_markup=InlineKeyboardMarkup(keyboard),
@@ -493,7 +475,7 @@ def process_xbox_gamertag(update, context):
 
         status_user_to_edit["xbox_gamertag"] = xbox_gamertag
         xbox_modification_msg = ("Great\! Your Xbox Gamertag has been set as "
-                                 f"*{xbox_gamertag}*")
+                                 f"`{xbox_gamertag}`")
 
     while len(context.user_data["messages"]) > 3:
         old_message = context.user_data["messages"].pop()
@@ -526,7 +508,7 @@ def process_xbox_gamertag(update, context):
     context.user_data["messages"].append(context.bot.send_message(
         user_id,
         "Now enter the new *PSN Online ID* \(currently " +
-        (f"set as *{status_user_to_edit['psn_online_id']}*\)"
+        (f"set as `{status_user_to_edit['psn_online_id']}`\)"
          if status_user_to_edit['psn_online_id'] else
          "not set as anything\)"),
         reply_markup=InlineKeyboardMarkup(keyboard),
@@ -619,7 +601,7 @@ def process_psn_online_id(update, context):
 
         status_user_to_edit['psn_online_id'] = psn_online_id
         psn_modification_msg = ("Great\! Your PSN Online ID has been set as "
-                                f"*{psn_online_id}*")
+                                f"`{psn_online_id}`")
 
     while len(context.user_data["messages"]) > 4:
         old_message = context.user_data["messages"].pop()
@@ -644,16 +626,8 @@ def process_psn_online_id(update, context):
     context.bot.send_message(
         user_id,
         f"*You've successfully updated your status user\.* Below are the "
-        "details of your new status user:\n\n"
-        "__Display Name__\n"
-        f"`{status_user_to_edit['display_name']}`\n\n"
-        "__Xbox Gamertag__\n"
-        f"`{status_user_to_edit['xbox_gamertag']}`\n\n"
-        "__PSN Online ID__"
-        f"\n`{status_user_to_edit['psn_online_id']}`\n\n"
-        "Added by [you]"
-        f"(tg://user?id={status_user_to_edit['user_id']}) in " +
-        (f"the _{group_name}_ group" if group_name else "this private chat"),
+        "details of your new status user:\n\n" +
+        stringify_status_user(context.bot, status_user_to_edit),
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN_V2
     )
@@ -758,12 +732,12 @@ def delete(update, context):
     if group_name != None:
         status_user_deletion_msg = (
             "Confirm deletion of the status user "
-            f"*{status_user_to_delete['display_name']}* in the _{group_name}_ "
+            f"`{status_user_to_delete['display_name']}` in the _{group_name}_ "
             "group")
     else:
         status_user_deletion_msg = (
             f"Confirm deletion of the status user "
-            f"*{status_user_to_delete['display_name']}* in this private chat"
+            f"`{status_user_to_delete['display_name']}` in this private chat"
         )
 
     update.edit_message_text(
@@ -796,12 +770,12 @@ def confirm_delete(update, context):
 
     if group_name != None:
         status_user_deletion_msg = (
-            f"Deleted *{status_user_to_delete['display_name']}* from the "
+            f"Deleted `{status_user_to_delete['display_name']}` from the "
             f"_{group_name}_ group"
         )
     else:
         status_user_deletion_msg = (
-            f"Deleted *{status_user_to_delete['display_name']}* from the "
+            f"Deleted `{status_user_to_delete['display_name']}` from the "
             "private chat"
         )
 
@@ -812,7 +786,7 @@ def confirm_delete(update, context):
         )
         context.bot.send_message(
             context.user_data["chat_id"],
-            f"*{status_user_to_delete['display_name']}* has been removed from "
+            f"`{status_user_to_delete['display_name']}` has been removed from "
             f"the /status command by {mention}",
             parse_mode=ParseMode.MARKDOWN_V2
         )

@@ -159,6 +159,7 @@ def start(update, context):
             parse_mode=ParseMode.MARKDOWN_V2,
             quote=True
         )
+        return ConversationHandler.END
     else:
         keyboard = [[
             InlineKeyboardButton(
@@ -304,6 +305,17 @@ def process_name(update, context):
                 "The notify group name you entered is the same as the "
                 "previously set name\. Please enter a new name or skip this "
                 "entry",
+                parse_mode=ParseMode.MARKDOWN_V2,
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                quote=True
+            ))
+            return EDITING_NOTIFY_GROUP_NAME
+        elif ' ' in new_notify_group_name:
+            alt_name = "\_".join(new_notify_group_name.split(" "))
+            context.user_data["messages"].append(update.message.reply_text(
+                "You can not have a space in your notify group name\. Here's "
+                "an alternative notify group name that you can try instead: "
+                f"`{alt_name}`\n\nPlease enter a valid notify group name",
                 parse_mode=ParseMode.MARKDOWN_V2,
                 reply_markup=InlineKeyboardMarkup(keyboard),
                 quote=True
@@ -575,7 +587,7 @@ def process_members(update, context):
         )
 
         # End the conversation
-        return ConversationHandler.END
+        return MAIN_MENU
     elif user_choice == "edit_other_members":
         # If we are choosing to edit other members, update the interface to
         # list all the members of the notify group as buttons
@@ -782,7 +794,7 @@ def confirm_delete(update, context):
     )
 
     update.edit_message_text(
-        f"Deleted `{notify_group_to_delete['name']}` from the *{group_name}* "
+        f"Deleted `{notify_group_to_delete['name']}` from the `{group_name}` "
         "group chat",
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN_V2

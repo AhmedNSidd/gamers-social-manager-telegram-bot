@@ -78,14 +78,15 @@ def start(update, context):
             ),
         ]]
         update.message.reply_text(
-            f"Hey {context.user_data['user_mention']}\!\n\nThe bot was unable "
-            "to send you a private message regarding adding a notify group "
-            "because you have to start the bot privately first\. Click on the "
-            "the button below, start the bot, then try running "
-            "`/add_notify_group` in this group again",
+            f"Hey {user_mention}\!\n\nThe bot was unable to send you a "
+            "private message regarding adding a notify group because you have "
+            "to start the bot privately first\. Click on the the button below,"
+            " start the bot, then try running `/add_notify_group` in this "
+            "group again",
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode=ParseMode.MARKDOWN_V2
         )
+        return ConversationHandler.END
     else:
         # send a group message that the bot sent a private message
         keyboard = [[

@@ -52,4 +52,5 @@ def age(update, context):
 
 def error(update, context):
     """Log Errors caused by Updates."""
+    print('Update "%s" caused error "%s"', update, context.error)
     logger.warning('Update "%s" caused error "%s"', update, context.error)
