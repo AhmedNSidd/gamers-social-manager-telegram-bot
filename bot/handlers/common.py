@@ -28,19 +28,34 @@ def get_user(bot: Bot, user_id: int, chat_id: int):
     return user
 
 
+def get_user_label(user):
+    return (f"@{user['username']}" if user.username
+            else f"{user['first_name']}")
+
+
 def get_one_mention(bot: Bot, user_id: int, chat_id: int):
     """
     This function returns a Markdown link to a user's profile given that the
     bot is in the same chat as them.
     """
     user = get_user(bot, user_id, chat_id)
-    user_label = (f"@{user['username']}" if user.username
-                  else f"{user['first_name']}")
-
+    user_label = get_user_label(user)
     return mention_markdown(user_id, user_label, 2)
 
 
+def get_one_mention_using_user(user):
+    """
+    This function returns a Markdown link to a user's profile given that the
+    bot is in the same chat as them.
+    """
+    user_label = get_user_label(user)
+    return mention_markdown(user.id, user_label, 2)
+
+
+
 def get_many_mentions(bot: Bot, chat_id: int, user_identifiers: list, separator="\n"):
+    if not user_identifiers:
+        return "`None`"
     user_mentions_str = ""
     for invited_member_identifier in user_identifiers:
         if type(invited_member_identifier) == str:

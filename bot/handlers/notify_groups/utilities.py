@@ -1,4 +1,5 @@
 from telegram import ParseMode
+from telegram.utils.helpers import escape_markdown
 from general.db import DBConnection
 from handlers.common import get_one_mention, send_loud_and_silent_message
 from handlers.notify_groups.common import stringify_notify_group
@@ -54,7 +55,8 @@ def notify(update, context):
 
     # Send error message if the user is not a part of the members of the
     # notify group, with instructions on how that can be fixed.
-    if not user_id in notify_group["members"]:
+    if (not user_id in notify_group["members"]
+        and notify_group["creator_id"] != user_id):
         notify_group_creator_mention = get_one_mention(
             context.bot, notify_group['creator_id'], chat_id
         )
@@ -62,13 +64,12 @@ def notify(update, context):
             context.bot,
             "Processing\.\.\.",
             "You need to be a member of this notify group in order to notify "
-            "the members of it\. You can ask the creator of this notify group "
-            f"\({notify_group_creator_mention}\) to invite you by doing "
-            f"`/invite_to_notify_group {notify_group.name} "
-            f"{curr_user_mention}`",
-            context.user_data["user_id"],
-            parse_mode=ParseMode.MARKDOWN_V2,
-            quote=True
+            "the members of it\. You can ask the creator of this notify group,"
+            f" {notify_group_creator_mention}\. The creator can invite you "
+            "using the following command:\n\n/invite\_to\_notify\_group "
+            f"{escape_markdown(notify_group['name'], 2)} {curr_user_mention}",
+            chat_id,
+            parse_mode=ParseMode.MARKDOWN_V2
         )
         return
 
