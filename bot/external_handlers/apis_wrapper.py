@@ -57,9 +57,9 @@ class ApisWrapper:
         This function will return the presence of all the StatusUsers in
         the chat corresponding to the chat_id provided.
         """
-        status_users = list(DBConnection().find(
+        status_users = DBConnection().find(
             "statususers", {"chat_id": chat_id}
-        ))
+        )
         if not status_users:
             return None
         xbox_gamertags, xbox_account_ids, psn_online_ids, psn_account_ids = self._group_account_ids_and_gaming_usernames(status_users)

@@ -153,10 +153,10 @@ resource "aws_ecs_task_definition" "gsm-task-definition" {
   container_definitions = jsonencode([
     {
       "name" : "gsm-bot",
-      "image" : "jesuisahmedn/gsm-bot:2",
+      "image" : "jesuisahmedn/gsm-bot:latest",
       "essential" : true,
       "environment" : [
-        { "name" : "GSM_TG_BOT_TOKEN", "value" : local.envs["GSM_TG_BOT_TOKEN"] },
+        { "name" : "GSM_TG_BOT_TOKEN", "value" : var.GUB_TG_BOT_TOKEN },
         { "name" : "GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD", "value" : "${mongodbatlas_serverless_instance.gsm-db.connection_strings_standard_srv}" },
         { "name" : "GSM_DB_USERNAME", "value" : var.MONGODBATLAS_DB_USER_USERNAME },
         { "name" : "GSM_DB_PASSWORD", "value" : "${random_password.mongodbatlas_password.result}" },
@@ -298,8 +298,8 @@ resource "aws_lb_target_group" "target_group" {
   target_type = "ip"
   vpc_id      = "${aws_default_vpc.default_vpc.id}" # Referencing the default VPC
   health_check {
-    matcher = "200,301,302"
-    path = "/"
+    matcher = "405"
+    path = "/${var.GUB_TG_BOT_TOKEN}"
   }
 }
 
