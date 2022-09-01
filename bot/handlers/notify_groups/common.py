@@ -40,6 +40,8 @@ def stringify_notify_group(bot: Bot, notify_group: dict):
         # Append the members who have left at the end of the members list
         for mention in left_members_mentions:
             members_str += f"{mention}\n"
+
+        members_str = members_str[:-1] # Remove the last new line
     else:
         members_str = "`None`"
 
@@ -58,7 +60,7 @@ def stringify_notify_group(bot: Bot, notify_group: dict):
         "__Group Description__\n"
         f"`{notify_group_description}`\n"
         "__Current Members__\n"
-        f"{members_str}"
+        f"{members_str}\n"
         "__Invited Users__\n"
         f"{invited_str}"
     )

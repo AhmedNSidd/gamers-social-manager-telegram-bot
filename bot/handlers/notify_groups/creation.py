@@ -303,7 +303,3 @@ def cancel(update, context):
     context.user_data.clear()
     return ConversationHandler.END
 
-
-# TODO (Issue #30): Implement /modify_notify_group
-def modify_notify_group(update, context):
-    pass
