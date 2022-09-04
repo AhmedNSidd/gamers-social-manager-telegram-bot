@@ -2,6 +2,11 @@ import datetime
 import humanize
 import os
 
+from semantic_version import Version
+
+
+BOT_VERSION = Version("0.1.0")
+
 
 help_message = """Here are the list of commands available to you:
 
