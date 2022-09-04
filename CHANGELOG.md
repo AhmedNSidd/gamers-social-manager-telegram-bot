@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 building
 - Modify requirements.txt to only keep essential 
 requirements
+- Fix some typos in messages from the bot
+- Improve on the formatting of the /status command output by increasing
+whitespace appropriately and changing "XBOXLIVE" -> "Xbox Live"
 
 ### Removed
 

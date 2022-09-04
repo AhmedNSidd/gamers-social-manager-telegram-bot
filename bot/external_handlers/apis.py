@@ -252,7 +252,7 @@ class XboxLiveApi:
         for x in range(len(presences)):
             if presences[x]:
                 main_device = XboxLiveApi._parse_main_device(presences[x])
-                player = PlayerPresence(gamertags[x], "XBOXLIVE",
+                player = PlayerPresence(gamertags[x], "Xbox Live",
                     XboxLiveApi._parse_platform(presences[x], main_device),
                     XboxLiveApi._parse_player_state(presences[x]),
                     XboxLiveApi._parse_game_title(presences[x], main_device),

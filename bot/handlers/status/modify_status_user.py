@@ -343,7 +343,7 @@ def process_display_name(update, context):
             return EDITING_DISPLAY_NAME
 
     if is_callback and new_display_name == "skip_display_name":
-        display_name_edit_msg = "Skipped editting your display name"
+        display_name_edit_msg = "Skipped editing your display name"
     else:
         display_name_edit_msg = (
             f"Great\! Your display name has been set as `{new_display_name}`"

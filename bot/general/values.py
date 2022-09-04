@@ -60,7 +60,7 @@ ADMIN_LIST = [247340182]
 
 BOT_USERNAME = "GamersUtilityBot"
 BOT_URL = f"https://t.me/{BOT_USERNAME}"
-TOKEN = os.environ.get("GSM_TG_BOT_TOKEN")
+TOKEN = os.environ.get("GUB_BOT_TOKEN")
 XBOX_CLIENT_SECRET_EXPIRY_DATE = datetime.datetime.strptime("Jun 16, 2024", "%b %d, %Y").date()
 
 OBIWAN_HELLO_THERE_GIF_FILEPATH = "media/obiwans-hello-there.mp4"
