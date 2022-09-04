@@ -30,7 +30,7 @@ class PlayerPresence(object):
     def __str__(self):
         str = ""
         if self.player_state == PlayerPresence.ONLINE:
-            str += f"{values.ONLINE_EMOJI}{self.service}: "
+            str += f"{values.ONLINE_EMOJI} {self.service}: "
             if self.game_title:
                 str += f"{self.game_title}"
             else:
@@ -38,7 +38,7 @@ class PlayerPresence(object):
             if self.platform:
                 str += f" ({self.platform})"
         elif self.player_state == PlayerPresence.AWAY:
-            str += f"{values.AWAY_EMOJI}{self.service}: "
+            str += f"{values.AWAY_EMOJI} {self.service}: "
             if self.game_title:
                 str += f"{self.game_title}"
             else:
@@ -46,7 +46,7 @@ class PlayerPresence(object):
             if self.platform:
                 str += f" ({self.platform})"
         elif self.player_state == PlayerPresence.DO_NOT_DISTURB:
-            str += f"{values.DO_NOT_DISTURB_EMOJI}{self.service}: "
+            str += f"{values.DO_NOT_DISTURB_EMOJI} {self.service}: "
             if self.game_title:
                 str += f"{self.game_title}"
             else:
@@ -54,7 +54,7 @@ class PlayerPresence(object):
             if self.platform:
                 str += f" ({self.platform})"
         elif self.player_state == PlayerPresence.OFFLINE:
-            str += f"{values.OFFLINE_EMOJI}{self.service}: "
+            str += f"{values.OFFLINE_EMOJI} {self.service}: "
             if not self.last_seen and not self.game_title and not self.platform:
                 str += "Offline"
             else:
@@ -66,7 +66,7 @@ class PlayerPresence(object):
                 if self.platform:
                     str += f"({self.platform})"
         else:
-            str += f"{values.UNKNOWN_EMOJI}{self.service}"
+            str += f"{values.UNKNOWN_EMOJI} {self.service}"
 
         return str
 

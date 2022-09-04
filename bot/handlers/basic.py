@@ -45,7 +45,7 @@ def mf(update, context):
 
 def age(update, context):
     update.message.reply_text(
-        "Didn't your mother ever teach you it's not polite to ask a bot it's "
+        "Didn't your mother ever teach you it's not polite to ask a bot its "
         f"age? Anyway, I am {values.AGE} {values.SMILEY_EMOJI}",
         parse_mode=ParseMode.MARKDOWN_V2
     )
