@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Created a CHANGELOG.md
 - Add a Semantic Version to keep track of bot version
+- The bot will now remove /notify command messages from the group chat if the
+bot has permissions to delete messages
 
 ### Changed
 - Change command ordering of Dockerfile to promote faster

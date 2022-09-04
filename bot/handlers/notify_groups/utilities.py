@@ -1,4 +1,5 @@
 from telegram import ParseMode
+from telegram.error import BadRequest
 from telegram.utils.helpers import escape_markdown
 from general.db import DBConnection
 from handlers.common import get_one_mention, send_loud_and_silent_message
@@ -87,6 +88,13 @@ def notify(update, context):
     else:
         notify_msg += f"\n\n{curr_user_mention} wants your attention"
 
+    # Delete the user's "/notify" message
+    try:
+        update.message.delete()
+    except BadRequest:
+        # This means that our bot doesn't have the appropriate permissions to
+        # delete a message in the group chat so we can just silently fail
+        pass
 
     # Send the notify message, tagging all the notify group members
     update.message.reply_text(
