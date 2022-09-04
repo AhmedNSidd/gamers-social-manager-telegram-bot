@@ -18,6 +18,12 @@ requirements
 - Fix some typos in messages from the bot
 - Improve on the formatting of the /status command output by increasing
 whitespace appropriately and changing "XBOXLIVE" -> "Xbox Live"
+- Fixed bug where status user's display name was set as None after
+creation of a status user
+- Fixed a bug where user mentions' texts were set as None on
+creation and modification of a status user
+- Fixed bad command usage that was serving as a help for the user for
+the /modify_notify_group command in the invite to notify group flow
 
 ### Removed
 

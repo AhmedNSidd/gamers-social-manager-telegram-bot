@@ -301,8 +301,8 @@ def reply_to_invite(update, context):
         notify_group_invitation["mgr_msg"].edit_text(
             f"{creator_mention} The invited users have successfully responded "
             "to the invite so you can no longer revoke the invitation\. You "
-            f"can however enter `/modify_notify_group {notify_group['name']}` "
-            "to remove any members from your notify group",
+            f"can however use the `/modify_notify_group command in this group "
+            "chat to remove any members from your notify group",
             parse_mode=ParseMode.MARKDOWN_V2
         )
         notify_group_invitation["inv_msg"].edit_text(
