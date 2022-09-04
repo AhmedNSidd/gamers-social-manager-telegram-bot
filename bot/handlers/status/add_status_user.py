@@ -354,12 +354,15 @@ def process_psn_online_id(update, context):
     del context.user_data["messages_to_delete"]
 
     if context.user_data.get("group_name"):
-        mention = (f"[{username}](tg://user?id="
-                   f"{context.user_data.get('user_id')})")
+        mention = get_one_mention(
+            context.bot,
+            context.user_data['user_id'],
+            context.user_data["chat_id"]
+        )
         context.bot.send_message(
             context.user_data.get("chat_id"),
-            f"`{context.user_data.get('display_name')}` has been added to the "
-            f"/status command by {mention}",
+            f"`{context.user_data['status_user']['display_name']}` has been "
+            f"added to the /status command by {mention}",
             parse_mode=ParseMode.MARKDOWN_V2
         )
 
