@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+### Changed
+### Removed
+
+
+## [v0.1.0]
+
+### Added
 - Created a CHANGELOG.md
 - Add a Semantic Version to keep track of bot version
 - The bot will now remove /notify command messages from the group chat if the
@@ -32,8 +39,8 @@ creation and modification of a status user
 the /modify_notify_group command in the invite to notify group flow
 - Improve user prompt when there are no status users to disply the status of
 - Allow multiple invites to a notify group
-### Removed
 
 
 
 [Unreleased]: https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/compare/main...develop
+[v0.1.0]: https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/compare/alpha-release...release-v0.1.0
