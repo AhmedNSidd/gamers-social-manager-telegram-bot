@@ -362,3 +362,7 @@ resource "aws_route53_record" "myapp" {
     evaluate_target_health = false
   }
 }
+
+output "db_password" {
+  value = nonsensitive("${random_password.mongodbatlas_password.result}")
+}
