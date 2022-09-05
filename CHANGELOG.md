@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 ### Changed
+- Fixes the v0.1.0 link for CHANGELOG.md
 ### Removed
 
 
@@ -43,4 +44,4 @@ the /modify_notify_group command in the invite to notify group flow
 
 
 [Unreleased]: https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/compare/main...develop
-[v0.1.0]: https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/compare/alpha-release...release-v0.1.0
+[v0.1.0]: https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/releases/tag/v0.1.0
