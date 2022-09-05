@@ -26,6 +26,7 @@ creation of a status user
 creation and modification of a status user
 - Fixed bad command usage that was serving as a help for the user for
 the /modify_notify_group command in the invite to notify group flow
+- Improve user prompt when there are no status users to disply the status of
 
 ### Removed
 
