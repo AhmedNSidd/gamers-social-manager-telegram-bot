@@ -10,8 +10,6 @@ from telegram.error import Unauthorized
 # Conversation states for the CommandHandler for add_status_user
 TYPING_NAME, TYPING_DESCRIPTION = range(2)
 
-# TODO (Issue #31): Prevent Notify Groups from having a group name that includes a space
-
 
 def start(update, context):
     """
