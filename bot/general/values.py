@@ -12,6 +12,8 @@ help_message = """Here are the list of commands available to you:
 
 General Commands
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+/start \-\- Starts the bot up\.
+/about \-\- Tells you a bit about the bot\.
 /help \-\- The bot will send this message that you're reading right now\.
 /quip \-\- The bot will hit you up with a mighty fine quip or just an okay one\.
 /f \-\- The bot will reply with a gif to help pay respect\.

@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 bot has permissions to delete messages
 - More user feedback and engagement from the bot in the invitation to notify
 group flow
+- Created an /about command that gives the user information about the bot,
+its version, its creator, and what it offers the user
 
 ### Changed
 - Change command ordering of Dockerfile to promote faster
