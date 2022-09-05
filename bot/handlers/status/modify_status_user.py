@@ -343,7 +343,7 @@ def process_display_name(update, context):
             return EDITING_DISPLAY_NAME
 
     if is_callback and new_display_name == "skip_display_name":
-        display_name_edit_msg = "Skipped editting your display name"
+        display_name_edit_msg = "Skipped editing your display name"
     else:
         display_name_edit_msg = (
             f"Great\! Your display name has been set as `{new_display_name}`"
@@ -780,9 +780,10 @@ def confirm_delete(update, context):
         )
 
     if group_name != None:
-        user_username = update.from_user['username']
-        mention = (
-            f"[{user_username}](tg://user?id={context.user_data['user_id']})"
+        mention = get_one_mention(
+            context.bot,
+            context.user_data["user_id"],
+            context.user_data["chat_id"]
         )
         context.bot.send_message(
             context.user_data["chat_id"],

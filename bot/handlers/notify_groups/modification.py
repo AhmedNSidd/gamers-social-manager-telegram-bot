@@ -719,7 +719,7 @@ def process_members(update, context):
         )
 
     context.user_data["messages"][-1].edit_text(
-        "Editting the members of the notify group\. You can now choose to "
+        "Editing the members of the notify group\. You can now choose to "
         "remove other members, add or remove yourself from the members list, "
         "discard any modifications made thus far, or skip this entry\n\n"
         "*Members List:*\n" + stringify_editing_members_str(context),

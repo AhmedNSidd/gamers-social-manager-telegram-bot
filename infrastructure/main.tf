@@ -156,7 +156,7 @@ resource "aws_ecs_task_definition" "gsm-task-definition" {
       "image" : "jesuisahmedn/gsm-bot:latest",
       "essential" : true,
       "environment" : [
-        { "name" : "GSM_TG_BOT_TOKEN", "value" : var.GUB_TG_BOT_TOKEN },
+        { "name" : "GUB_BOT_TOKEN", "value" : var.GUB_TG_BOT_TOKEN },
         { "name" : "GSM_DB_URL_WITHOUT_USERNAME_AND_PASSWORD", "value" : "${mongodbatlas_serverless_instance.gsm-db.connection_strings_standard_srv}" },
         { "name" : "GSM_DB_USERNAME", "value" : var.MONGODBATLAS_DB_USER_USERNAME },
         { "name" : "GSM_DB_PASSWORD", "value" : "${random_password.mongodbatlas_password.result}" },
@@ -361,4 +361,8 @@ resource "aws_route53_record" "myapp" {
     zone_id                = aws_alb.application_load_balancer.zone_id
     evaluate_target_health = false
   }
+}
+
+output "db_password" {
+  value = nonsensitive("${random_password.mongodbatlas_password.result}")
 }

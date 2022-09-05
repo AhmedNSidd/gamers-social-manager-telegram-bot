@@ -12,7 +12,7 @@ def stringify_status_user(bot: Bot, status_user: dict):
         bot, status_user["user_id"], status_user["chat_id"]
     )
     creator_details = (
-        f"{creator_mention} in the {status_user['group_name']}"
+        f"{creator_mention} in the `{status_user['group_name']}` group chat"
         if status_user.get('group_name')
         else f"{creator_mention} in this private chat"
     )

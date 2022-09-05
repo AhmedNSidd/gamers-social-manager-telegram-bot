@@ -1,7 +1,8 @@
 import logging
 
 from general import values
-from telegram import ParseMode, Message
+from telegram import ParseMode
+from telegram.utils.helpers import escape_markdown
 
 
 # Enable logging
@@ -24,6 +25,24 @@ def start(update, context):
     update.message.reply_text(start_msg, parse_mode=ParseMode.MARKDOWN_V2)
 
 
+def about(update, context):
+    bot_version_escaped_str = escape_markdown(values.BOT_VERSION.__str__(), 2)
+    update.message.reply_text(
+        f"Gamers Utility Bot v{bot_version_escaped_str}\n"
+        "_Created by [Ahmed Siddiqui](https://github.com/AhmedNSidd/)_\n\n"
+        "This is a Telegram bot created to give gamers some helpful utilities,"
+        "making it easier to game with other users in group chats\. It does "
+        "this through 2 main features:\n\n"
+        f"{values.RIGHT_POINTING_EMOJI} The bot allows you to view the "
+        "Online Status of gamers on Xbox Live & PSN through the Status Users "
+        "feature\.\n"
+        f"{values.RIGHT_POINTING_EMOJI} The bot allows you to create Notify "
+        "Groups consisting of other members in a group chat\. You can use a "
+        "Notify Group to notify those members when you want to play games "
+        "with them, or to send them any other message\.",
+        parse_mode=ParseMode.MARKDOWN_V2,
+        disable_web_page_preview=True
+    )
 
 def help(update, context):
     """Send a message when the command /help is issued."""
@@ -45,7 +64,7 @@ def mf(update, context):
 
 def age(update, context):
     update.message.reply_text(
-        "Didn't your mother ever teach you it's not polite to ask a bot it's "
+        "Didn't your mother ever teach you it's not polite to ask a bot its "
         f"age? Anyway, I am {values.AGE} {values.SMILEY_EMOJI}",
         parse_mode=ParseMode.MARKDOWN_V2
     )

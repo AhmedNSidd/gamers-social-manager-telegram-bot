@@ -2,11 +2,18 @@ import datetime
 import humanize
 import os
 
+from semantic_version import Version
+
+
+BOT_VERSION = Version("0.1.0")
+
 
 help_message = """Here are the list of commands available to you:
 
 General Commands
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+/start \-\- Starts the bot up\.
+/about \-\- Tells you a bit about the bot\.
 /help \-\- The bot will send this message that you're reading right now\.
 /quip \-\- The bot will hit you up with a mighty fine quip or just an okay one\.
 /f \-\- The bot will reply with a gif to help pay respect\.
@@ -55,7 +62,7 @@ ADMIN_LIST = [247340182]
 
 BOT_USERNAME = "GamersUtilityBot"
 BOT_URL = f"https://t.me/{BOT_USERNAME}"
-TOKEN = os.environ.get("GSM_TG_BOT_TOKEN")
+TOKEN = os.environ.get("GUB_BOT_TOKEN")
 XBOX_CLIENT_SECRET_EXPIRY_DATE = datetime.datetime.strptime("Jun 16, 2024", "%b %d, %Y").date()
 
 OBIWAN_HELLO_THERE_GIF_FILEPATH = "media/obiwans-hello-there.mp4"

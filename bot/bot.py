@@ -69,6 +69,7 @@ def register_nonconversation_commands(dispatcher):
     # Register all non-conversation handlers, keeping them in the same group.
     ## Register the non-conversation basic command handlers
     dispatcher.add_handler(CommandHandler("start", handlers.basic.start), 0)
+    dispatcher.add_handler(CommandHandler("about", handlers.basic.about), 0)
     dispatcher.add_handler(CommandHandler("help", handlers.basic.help), 0)
     dispatcher.add_handler(CommandHandler("f", handlers.basic.f), 0)
     dispatcher.add_handler(CommandHandler("mf", handlers.basic.mf), 0)
@@ -389,11 +390,11 @@ def register_conversation_commands(dispatcher):
             handlers.notify_groups.invitations.WAITING_FOR_REPLY: [
                 CallbackQueryHandler(
                     handlers.notify_groups.invitations.reply_to_invite,
-                    pattern="^(accept|decline)_[0-9a-f]{24}$"
+                    pattern="^(accept|decline)_[0-9a-f]{24}_[0-9a-f]{24}$"
                 ),
                 CallbackQueryHandler(
                     handlers.notify_groups.invitations.revoke_invitation,
-                    pattern="^revoke-invite_[0-9a-f]{24}$"
+                    pattern="^revoke-invite_[0-9a-f]{24}_[0-9a-f]{24}$"
                 ),
             ]
         },
