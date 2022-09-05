@@ -389,11 +389,11 @@ def register_conversation_commands(dispatcher):
             handlers.notify_groups.invitations.WAITING_FOR_REPLY: [
                 CallbackQueryHandler(
                     handlers.notify_groups.invitations.reply_to_invite,
-                    pattern="^(accept|decline)_[0-9a-f]{24}$"
+                    pattern="^(accept|decline)_[0-9a-f]{24}_[0-9a-f]{24}$"
                 ),
                 CallbackQueryHandler(
                     handlers.notify_groups.invitations.revoke_invitation,
-                    pattern="^revoke-invite_[0-9a-f]{24}$"
+                    pattern="^revoke-invite_[0-9a-f]{24}_[0-9a-f]{24}$"
                 ),
             ]
         },

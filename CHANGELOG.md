@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a Semantic Version to keep track of bot version
 - The bot will now remove /notify command messages from the group chat if the
 bot has permissions to delete messages
+- More user feedback and engagement from the bot in the invitation to notify
+group flow
 
 ### Changed
 - Change command ordering of Dockerfile to promote faster
@@ -27,7 +29,7 @@ creation and modification of a status user
 - Fixed bad command usage that was serving as a help for the user for
 the /modify_notify_group command in the invite to notify group flow
 - Improve user prompt when there are no status users to disply the status of
-
+- Allow multiple invites to a notify group
 ### Removed
 
 
