@@ -1,8 +1,9 @@
 from bson.objectid import ObjectId
 from handlers.notify_groups.common import stringify_notify_group
 from handlers.common import get_many_mentions, get_one_mention_using_user, \
-                            get_one_mention, get_user, get_user_label
-from general import values
+                            get_one_mention, get_user, get_user_label, \
+                            escape_text
+from general import values, strings, inline_keyboards
 from general.db import DBConnection
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
@@ -21,34 +22,95 @@ def start(update, context):
     which NotifyGroups they would like to modify.
     """
     is_callback = False
+    # The entry points are:
+    # a) if someone presses the back button in which case we shouldn't
+    # recollect
+    # b) if a fresh command is entered in the group chat in which case info 
+    # should be collected but promptly the convo should be ended
+    # c) if the conversation is started using a button in which case, essential
+    # info should be collected
     if update.callback_query:
-        # It could be only be a callback if the interface already exists and
-        # the user decided to go back to this page
+        # It could only be a callback if the process was started via a button
+        # in the private chat regarding a group chat (in which case we need to
+        # collect fresh essential information), or if the interface already
+        # existed and the user pressed `back` in which case we shouldn't
+        # collect information again
         is_callback = True
         update = update.callback_query
         update.answer()
-
-    # If we get here due to a callback, then we need to use the preexisting
-    # user id, group names, etc. But if a fresh commmand is executed then we
-    # need to get fresh IDs.
-    if not is_callback:
+        callback_data_tokens = update.data.split("_")
+        if len(callback_data_tokens) != 3:
+            # It is three tokens if the `back` button was pressed
+            # Else, we are dealing with the start of a modify status user
+            # process for a group chat in the private chat
+            context.user_data["user_id"] = update.message.chat.id
+            group_chat_id = callback_data_tokens[1]
+            group_chat = context.bot.get_chat(group_chat_id)
+            context.user_data["chat_id"] = group_chat.id
+            context.user_data["group_name"] = group_chat.title
+    else: 
+        # Collect the essential information for the command that was entered.
+        # This could happen if /modify_status_user was entered in a group chat
+        # If it's a private chat, an error should be entered.
         context.user_data["user_id"] = update.message.from_user.id
         context.user_data["chat_id"] = update.message.chat.id
-        # Cancel the command if it's not entered in a group
-        if not context.user_data["chat_id"] != context.user_data["user_id"]:
+        context.user_data["group_name"] = (
+            update.message.chat.title
+            if context.user_data["chat_id"] != context.user_data["user_id"]
+            else None
+        )
+        if not context.user_data["group_name"]:
             update.message.reply_text(
-                "You can only modify notify groups for a group chat\!",
-                parse_mode=ParseMode.MARKDOWN_V2,
+                "You can only run this command in a group",
                 quote=True
             )
             return ConversationHandler.END
 
-        context.user_data["user_mention"] = get_one_mention(
-            context.bot,
-            context.user_data["user_id"],
-            context.user_data["chat_id"]
-        )
-        context.user_data["group_name"] = update.message.chat.title
+    context.user_data["user_mention"] = get_one_mention(
+        context.bot, context.user_data["user_id"], context.user_data["chat_id"]
+    )
+
+    if not is_callback and context.user_data["group_name"]:
+        # If we're in a group, then just send a private button to start
+        # the process and end this current conversation
+        escaped_group_name = escape_text(context.user_data['group_name'])
+        try:
+            context.bot.send_message(
+                context.user_data["user_id"],
+                strings.CLICK_BUTTON_TO_START_PROCESS(
+                    f"modifying a notify group for the _{escaped_group_name}_ "
+                    "group chat"
+                ),
+                reply_markup=inline_keyboards.mng_start_keyboard(
+                    context.user_data["chat_id"]
+                ),
+                parse_mode=ParseMode.MARKDOWN_V2,
+            )
+        except Unauthorized:
+            # send a group message that the bot was unable to send a
+            # private message if there's an error
+            update.message.reply_text(
+                strings.BOT_UNABLE_TO_SEND_PRIVATE_MESSAGE(
+                    context.user_data["user_mention"],
+                    "modifying a notify group",
+                    "modify\_notify\_group"
+                ),
+                reply_markup=inline_keyboards.go_to_private_chat_keyboard(),
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        else:
+            # send a group message that the bot sent a private message to
+            # modify a status user
+            update.message.reply_text(
+                strings.BOT_SENT_A_PRIVATE_MESSAGE(
+                    context.user_data["user_mention"],
+                    "to modify a notify group for this group chat"
+                ),
+                reply_markup=inline_keyboards.go_to_private_chat_keyboard(),
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        finally:
+            return ConversationHandler.END
 
     user_group_privilege = context.bot.get_chat_member(
         context.user_data["chat_id"], context.user_data["user_id"]
@@ -130,50 +192,16 @@ def start(update, context):
         # If someone presses the "back" button to go back to the home screen 
         # of the interface
         update.message.edit_text(
-            notify_group_msg, reply_markup=keyboard_markup,
+            notify_group_msg,
+            reply_markup=keyboard_markup,
             parse_mode=ParseMode.MARKDOWN_V2
         )
-        return MAIN_MENU
-    
-    try:
-        # This is the case where someone just typed /modify_notify_group
-        context.bot.send_message(
-            context.user_data["user_id"], notify_group_msg,
-            reply_markup=keyboard_markup, parse_mode=ParseMode.MARKDOWN_V2
-        )
-    except Unauthorized:
-        keyboard = [[
-            InlineKeyboardButton(
-                f"{values.RIGHT_POINTING_EMOJI} GO TO BOT CHAT TO START "
-                                                                    "BOT",
-                url=f"{values.BOT_URL}"
-            ),
-        ]]
-        update.message.reply_text(
-            f"Hey {context.user_data['user_mention']}\!\n\nThe bot was "
-            "unable to send you a private message regarding modifying a "
-            "notify group because you have to start the bot privately "
-            "first\. Click on the button below, start the bot, then try "
-            "running `/modify_notify_group` in this group again",
-            reply_markup=InlineKeyboardMarkup(keyboard),
-            parse_mode=ParseMode.MARKDOWN_V2,
-            quote=True
-        )
-        return ConversationHandler.END
     else:
-        keyboard = [[
-            InlineKeyboardButton(
-                f"{values.RIGHT_POINTING_EMOJI} GO TO PRIVATE CHAT",
-                url=f"{values.BOT_URL}"
-            ),
-        ]]
+        # This is the case where someone just typed /modify_notify_group
         update.message.reply_text(
-            f"Hey {context.user_data['user_mention']}\!\n\nI have sent "
-            "you a private message which you can use to modify your "
-            "notify groups connected to this group",
-            reply_markup=InlineKeyboardMarkup(keyboard),
-            parse_mode=ParseMode.MARKDOWN_V2,
-            quote=True
+            notify_group_msg,
+            reply_markup=keyboard_markup,
+            parse_mode=ParseMode.MARKDOWN_V2
         )
 
     return MAIN_MENU

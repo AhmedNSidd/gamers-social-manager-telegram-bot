@@ -1,6 +1,5 @@
 from telegram import Bot, ChatMember
-from telegram.utils.helpers import escape_markdown
-from handlers.common import get_one_mention, get_many_mentions
+from handlers.common import get_one_mention, get_many_mentions, escape_text
 
 
 def stringify_notify_group(bot: Bot, notify_group: dict):
@@ -9,7 +8,7 @@ def stringify_notify_group(bot: Bot, notify_group: dict):
     will return a formatted string message that displays this notify group.
     """
     # Set up all the string vars for the notify group info
-    notify_group_name = escape_markdown(notify_group["name"], 2)
+    notify_group_name = escape_text(notify_group["name"])
     creator_mention = get_one_mention(
         bot, notify_group['creator_id'], notify_group['chat_id']
     )
@@ -18,7 +17,7 @@ def stringify_notify_group(bot: Bot, notify_group: dict):
     if creator_status in [ChatMember.KICKED, ChatMember.LEFT]:
         creator_mention += f" *\[Left the group\]*"
 
-    notify_group_description = (escape_markdown(notify_group["description"], 2)
+    notify_group_description = (escape_text(notify_group["description"])
                                 if notify_group["description"] else "None")
 
     # Add current members
