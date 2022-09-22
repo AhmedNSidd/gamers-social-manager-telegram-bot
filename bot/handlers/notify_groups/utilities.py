@@ -1,8 +1,8 @@
 from telegram import ParseMode
 from telegram.error import BadRequest
-from telegram.utils.helpers import escape_markdown
 from general.db import DBConnection
-from handlers.common import get_one_mention, send_loud_and_silent_message
+from handlers.common import get_one_mention, send_loud_and_silent_message,\
+                            escape_text
 from handlers.notify_groups.common import stringify_notify_group
 
 
@@ -68,7 +68,7 @@ def notify(update, context):
             "the members of it\. You can ask the creator of this notify group,"
             f" {notify_group_creator_mention}\. The creator can invite you "
             "using the following command:\n\n/invite\_to\_notify\_group "
-            f"{escape_markdown(notify_group['name'], 2)} {curr_user_mention}",
+            f"{escape_text(notify_group['name'])} {curr_user_mention}",
             chat_id,
             parse_mode=ParseMode.MARKDOWN_V2
         )

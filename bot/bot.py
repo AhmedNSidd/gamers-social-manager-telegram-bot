@@ -107,7 +107,7 @@ def register_conversation_commands(dispatcher):
             ),
             CallbackQueryHandler(
                 handlers.status.add_status_user.start,
-                pattern="^add_status_user$"
+                pattern="^asu_[-]?[0-9]+$"
             )
         ],
         states={
@@ -145,8 +145,7 @@ def register_conversation_commands(dispatcher):
             ),
             MessageHandler(Filters.command, lambda u,c : handlers.common.cancel_current_conversation(u, c, "/add_status_user"))
         ],
-        allow_reentry=True,
-        per_chat=False
+        allow_reentry=True
     ))
 
     conversation_handlers.append(ConversationHandler(
@@ -159,6 +158,10 @@ def register_conversation_commands(dispatcher):
                 handlers.status.modify_status_user.start,
                 pattern="^modify_status_user$"
             ),
+            CallbackQueryHandler(
+                handlers.status.modify_status_user.start,
+                pattern="^msu_[-]?[0-9]+$"
+            )
         ],
         states={
             handlers.status.modify_status_user.MAIN_MENU: [
@@ -261,8 +264,7 @@ def register_conversation_commands(dispatcher):
         fallbacks=[
             MessageHandler(Filters.text, lambda u,c : None)
         ],
-        allow_reentry=True,
-        per_chat=False,
+        allow_reentry=True
     ))
 
     conversation_handlers.append(ConversationHandler(
@@ -270,6 +272,10 @@ def register_conversation_commands(dispatcher):
             CommandHandler(
                 "add_notify_group",
                 handlers.notify_groups.creation.start
+            ),
+            CallbackQueryHandler(
+                handlers.notify_groups.creation.start,
+                pattern="^ang_[-]?[0-9]+$"
             )
         ],
         states={
@@ -295,8 +301,7 @@ def register_conversation_commands(dispatcher):
                                  "^cancel$"),
             MessageHandler(Filters.command, lambda u,c : handlers.common.cancel_current_conversation(u, c, "/add_notify_group"))
         ],
-        allow_reentry=True,
-        per_chat=False,
+        allow_reentry=True
     ))
 
     conversation_handlers.append(ConversationHandler(
@@ -305,6 +310,10 @@ def register_conversation_commands(dispatcher):
                            handlers.notify_groups.modification.start),
             CallbackQueryHandler(handlers.notify_groups.modification.start,
                                  pattern="^modify_notify_group$"),
+            CallbackQueryHandler(
+                handlers.notify_groups.modification.start,
+                pattern="^mng_[-]?[0-9]+$"
+            )
         ],
         states={
             handlers.notify_groups.modification.MAIN_MENU: [
@@ -375,8 +384,7 @@ def register_conversation_commands(dispatcher):
         fallbacks=[
             MessageHandler(Filters.text, lambda u,c : None)
         ],
-        allow_reentry=True,
-        per_chat=False,
+        allow_reentry=True
     ))
 
     conversation_handlers.append(ConversationHandler(

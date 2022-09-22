@@ -1,8 +1,8 @@
 import logging
 
+from handlers.common import escape_text
 from general import values
 from telegram import ParseMode
-from telegram.utils.helpers import escape_markdown
 
 
 # Enable logging
@@ -26,7 +26,7 @@ def start(update, context):
 
 
 def about(update, context):
-    bot_version_escaped_str = escape_markdown(values.BOT_VERSION.__str__(), 2)
+    bot_version_escaped_str = escape_text(values.BOT_VERSION.__str__())
     update.message.reply_text(
         f"Gamers Utility Bot v{bot_version_escaped_str}\n"
         "_Created by [Ahmed Siddiqui](https://github.com/AhmedNSidd/)_\n\n"

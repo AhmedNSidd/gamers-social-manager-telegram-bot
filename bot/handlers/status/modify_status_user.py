@@ -3,8 +3,8 @@ import asyncio
 
 from aiohttp import ClientResponseError
 from bson.objectid import ObjectId
-from handlers.common import get_one_mention
-from general import values
+from handlers.common import get_one_mention, escape_text
+from general import values, strings, inline_keyboards
 from general.db import DBConnection
 from external_handlers.apis_wrapper import ApisWrapper
 from handlers.status.common import stringify_status_user
@@ -29,16 +29,28 @@ def start(update, context):
     """
     is_callback = False
     if update.callback_query:
-        # It could be only be a callback if the interface already exists and
-        # the user decided to go back to this page
+        # It could only be a callback if the process was started via a button
+        # in the private chat regarding a group chat (in which case we need to
+        # collect fresh essential information), or if the interface already
+        # existed and the user pressed `back` in which case we shouldn't
+        # collect information again
         is_callback = True
         update = update.callback_query
         update.answer()
-
-    # If we get here due to a callback, then we need to use the preexisting
-    # user id, group names, etc. But if a fresh commmand is executed then we
-    # need to get fresh IDs.
-    if not is_callback:
+        callback_data_tokens = update.data.split("_")
+        if len(callback_data_tokens) != 3:
+            # It is three tokens if the `back` button was pressed
+            # Else, we are dealing with the start of a modify status user
+            # process for a group chat in the private chat
+            context.user_data["user_id"] = update.message.chat.id
+            group_chat_id = callback_data_tokens[1]
+            group_chat = context.bot.get_chat(group_chat_id)
+            context.user_data["chat_id"] = group_chat.id
+            context.user_data["group_name"] = group_chat.title
+    else:
+        # Collect the essential information for the command that was entered.
+        # This could happen if /modify_status_user was entered either in a
+        # group chat or private chat
         context.user_data["user_id"] = update.message.from_user.id
         context.user_data["chat_id"] = update.message.chat.id
         context.user_data["user_mention"] = get_one_mention(
@@ -51,6 +63,47 @@ def start(update, context):
             if context.user_data["chat_id"] != context.user_data["user_id"]
             else None
         )
+   
+    if not is_callback and context.user_data["group_name"]:
+        # if a fresh commmand is executed in a group chat, then just send a
+        # private button to start the process and end this current conversation
+        try:
+            context.bot.send_message(
+                context.user_data["user_id"],
+                strings.CLICK_BUTTON_TO_START_PROCESS(
+                    "modifying a status user for the "
+                    f"`{context.user_data['group_name']}` group chat"
+                ),
+                reply_markup=inline_keyboards.msu_start_keyboard(
+                    context.user_data["chat_id"]
+                ),
+                parse_mode=ParseMode.MARKDOWN_V2,
+            )
+        except Unauthorized:
+            # send a group message that the bot was unable to send a
+            # private message if there's an error
+            update.message.reply_text(
+                strings.BOT_UNABLE_TO_SEND_PRIVATE_MESSAGE(
+                    context.user_data["user_mention"],
+                    "modifying a status user",
+                    "modify\_status\_user"
+                ),
+                reply_markup=inline_keyboards.go_to_private_chat_keyboard(),
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        else:
+            # send a group message that the bot sent a private message to
+            # modify a status user
+            update.message.reply_text(
+                strings.BOT_SENT_A_PRIVATE_MESSAGE(
+                    context.user_data["user_mention"],
+                    "to modify a status user for this group chat"
+                ),
+                reply_markup=inline_keyboards.go_to_private_chat_keyboard(),
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        finally:
+            return ConversationHandler.END
 
     user_group_privilege = context.bot.get_chat_member(
         context.user_data["chat_id"], context.user_data["user_id"]
@@ -139,55 +192,20 @@ def start(update, context):
     keyboard_markup = InlineKeyboardMarkup(keyboard)
     if is_callback:
         # This is the case where someone presses the "back" button to go back
-        # to the home screen of the interface
+        # to the home screen of the interface OR someone just started the
+        # conversation: modifying the status user for a group
         update.message.edit_text(
-            status_user_msg, reply_markup=keyboard_markup,
+            status_user_msg,
+            reply_markup=keyboard_markup,
+            parse_mode=ParseMode.MARKDOWN_V2
+        )    
+    else:
+        # This is the case where someone just typed /modify_status_user
+        update.message.reply_text(
+            status_user_msg,
+            reply_markup=keyboard_markup,
             parse_mode=ParseMode.MARKDOWN_V2
         )
-        return MAIN_MENU
-    
-    try:
-        # This is the case where someone just typed /modify_status_user
-        context.bot.send_message(
-            context.user_data["user_id"], status_user_msg,
-            reply_markup=keyboard_markup, parse_mode=ParseMode.MARKDOWN_V2
-        )
-    except Unauthorized:
-        if context.user_data.get("group_name"):
-            keyboard = [[
-                InlineKeyboardButton(
-                    f"{values.RIGHT_POINTING_EMOJI} GO TO BOT CHAT TO START "
-                                                                        "BOT",
-                    url=f"{values.BOT_URL}"
-                ),
-            ]]
-            update.message.reply_text(
-                f"Hey {context.user_data['user_mention']}\!\n\nThe bot was "
-                "unable to send you a private message regarding modifying a "
-                "status user because you have to start the bot privately "
-                "first\. Click on the button below, start the bot, then try "
-                "running `/modify_status_user` in this group again",
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode=ParseMode.MARKDOWN_V2,
-                quote=True
-            )
-        return ConversationHandler.END
-    else:
-        if context.user_data.get("group_name"):
-            keyboard = [[
-                InlineKeyboardButton(
-                    f"{values.RIGHT_POINTING_EMOJI} GO TO PRIVATE CHAT",
-                    url=f"{values.BOT_URL}"
-                ),
-            ]]
-            update.message.reply_text(
-                f"Hey {context.user_data['user_mention']}\!\n\nI have sent "
-                "you a private message which you can use to modify your "
-                "status users connected to this group",
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode=ParseMode.MARKDOWN_V2,
-                quote=True
-            )
 
     return MAIN_MENU
 
@@ -658,10 +676,11 @@ def process_edited_status_user(context):
         context.user_data["messages"].append(context.bot.send_message(
             user_id,
             "Warning\! Since you have no Xbox Gamertag or PSN Online ID "
-            f"connected to the `{status_user_to_edit['display_name']}` status user\. It "
-            f"will be deleted from " +
-            f"the _{group_name}_ group" if group_name else "this private chat"
-            + "\n\nIf you didn't mean to do this, you can cancel your changes "
+            f"connected to the `{status_user_to_edit['display_name']}` status "
+            "user\. It will be deleted from " +
+            (f"the _{group_name}_ group" if group_name
+                                         else "this private chat") +
+            "\n\nIf you didn't mean to do this, you can cancel your changes "
             "below, or confirm it, and your status user will be deleted",
             parse_mode=ParseMode.MARKDOWN_V2,
             reply_markup=InlineKeyboardMarkup(keyboard)
