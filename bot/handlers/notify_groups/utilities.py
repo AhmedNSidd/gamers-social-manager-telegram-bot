@@ -119,11 +119,31 @@ def list_notify_groups(update, context):
         )
         return
 
-    # Get all the notify groups connected to this group chat.
-    notify_groups = DBConnection().find(
-        "notifygroups",
-        {"chat_id": chat_id}
-    )
+    if context.args:
+        # Use the notify group names that are given as command arguments if
+        # there are context.args
+        notify_groups_dictionary = {
+            notify_group["name"]: notify_group 
+            for notify_group in DBConnection().find(
+                "notifygroups",
+                {"chat_id": chat_id,
+                "name": {"$in": context.args}}
+            )
+        }
+
+        # Reorder the notify groups in the sequence given by the context.args
+        notify_groups = []
+        for arg in context.args:
+            if arg in notify_groups_dictionary:
+                notify_groups.append(notify_groups_dictionary[arg])
+    else:
+        # Get all the notify groups connected to this group chat if there are
+        # no context arguments
+        notify_groups = DBConnection().find(
+            "notifygroups",
+            {"chat_id": chat_id}
+        )
+
     # Send an error message if no notify groups exist.
     if not notify_groups:
         update.message.reply_text(
@@ -134,9 +154,20 @@ def list_notify_groups(update, context):
 
     # Create a nicely formatted message with all the notify groups and send it
     # as a message.
-    msg = (
-        "Listed below are all the notify groups for this group chat:\n\n"
-    )
+    if context.args:
+        # If there were notify groups specified, then ensure the user knows
+        # that not all the notify groups were returned for this group chat.
+        msg = (
+            "Listed below are the valid notify groups you requested for this "
+            "group chat:\n\n"
+        )
+    else:
+        # If no notify groups were specified, let the user know we are
+        # returning them all the notify groups found connected to this group
+        # chat
+        msg = (
+            "Listed below are all the notify groups for this group chat:\n\n"
+        )
     # msg += "`\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-`\n"
     for notify_group in notify_groups:
         msg += f"{stringify_notify_group(context.bot, notify_group)}\n\n"
