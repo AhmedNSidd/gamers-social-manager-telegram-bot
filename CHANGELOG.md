@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Add further instructions for user when they start the bot after they were
+unable to run a command before because the bot was blocked/not started
 ### Changed
 - Fixes the v0.1.0 link for CHANGELOG.md
 ### Removed

@@ -67,7 +67,7 @@ BOT_UNABLE_TO_SEND_PRIVATE_MESSAGE = lambda mention, cmd_name, cmd: (
     "1\) Click the button below to go to your private chat\n"
     "2\) Click on the **start** button to start the bot\n"
     "3\) Come back to this group chat\n"
-    f"4\) Run `{cmd}` again"
+    f"4\) Run {cmd} again"
 )
 
 

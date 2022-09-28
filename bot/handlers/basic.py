@@ -16,13 +16,31 @@ logger = logging.getLogger(__name__)
 
 def start(update, context):
     """Send a message when the command /start is issued."""
-    start_msg = ("You've started me up\! Use /help to learn more about what "
-                 f"I can do for you {values.SMILEY_EMOJI}")
-
     update.message.reply_animation(
         open(values.OBIWAN_HELLO_THERE_GIF_FILEPATH, "rb")
     )
-    update.message.reply_text(start_msg, parse_mode=ParseMode.MARKDOWN_V2)
+
+    if context.args:
+        cmd_code, group_id = context.args[0].split("_")
+        group_chat = context.bot.get_chat(group_id)
+        group_title = group_chat.title
+        msg = (
+            "You've successfully started me up\! Now you can go back to the "
+            f"`{group_title}` group chat and run "
+        )
+        if cmd_code == "asu":
+            msg += "`/add_status_user`"
+        elif cmd_code == "msu":
+            msg += "`/modify_status_user`"
+        elif cmd_code == "ang":
+            msg += "`/add_notify_group`"
+        elif cmd_code == "mng":
+            msg += "`/modify_notify_group`"
+    else:
+        msg = ("You've successfully started me up\! Use /help to learn more "
+               f"about what I can do for you {values.SMILEY_EMOJI}")
+    
+    update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN_V2)
 
 
 def about(update, context):
