@@ -139,10 +139,10 @@ def list_notify_groups(update, context):
     else:
         # Get all the notify groups connected to this group chat if there are
         # no context arguments
-        notify_groups = DBConnection().find(
+        notify_groups = sorted(DBConnection().find(
             "notifygroups",
             {"chat_id": chat_id}
-        )
+        ), key=lambda notify_group: notify_group["name"])
 
     # Send an error message if no notify groups exist.
     if not notify_groups:
@@ -166,7 +166,8 @@ def list_notify_groups(update, context):
         # returning them all the notify groups found connected to this group
         # chat
         msg = (
-            "Listed below are all the notify groups for this group chat:\n\n"
+            "Listed below are all the notify groups for this group chat "
+            "(sorted alphabetically):\n\n"
         )
     # msg += "`\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-`\n"
     for notify_group in notify_groups:

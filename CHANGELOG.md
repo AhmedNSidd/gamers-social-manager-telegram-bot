@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 unable to run a command before because the bot was blocked/not started
 - Add the ability to list specific notify groups if they are provided as
 command arguments to the /list_notify_groups command.
+- List notify groups alphabetically when notify groups are listed using the
+/list_notify_groups command.
 ### Changed
 - Fixes the v0.1.0 link for CHANGELOG.md
 ### Removed
