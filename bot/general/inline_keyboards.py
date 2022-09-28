@@ -1,5 +1,7 @@
-from general.values import RIGHT_POINTING_EMOJI, BOT_URL, CANCELLED_EMOJI, NEXT_TRACK_EMOJI
+from general.values import RIGHT_POINTING_EMOJI, CANCELLED_EMOJI, NEXT_TRACK_EMOJI
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.utils.helpers import create_deep_linked_url
+
 
 def cancel_keyboard():
     return InlineKeyboardMarkup([[
@@ -21,11 +23,12 @@ def asu_xbox_gamertag_keyboard():
         )
     ]])
 
-def go_to_private_chat_keyboard():
+def go_to_private_chat_keyboard(username, payload=None):
     return InlineKeyboardMarkup(
         [[InlineKeyboardButton(
             f"{RIGHT_POINTING_EMOJI} GO TO PRIVATE CHAT",
-            url=f"{BOT_URL}"
+            url=(f"https://t.me/{username}" if not payload else
+                 create_deep_linked_url(username, payload))
         )]]
     )
 

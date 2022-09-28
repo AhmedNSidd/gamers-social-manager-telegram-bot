@@ -86,9 +86,12 @@ def start(update, context):
                 strings.BOT_UNABLE_TO_SEND_PRIVATE_MESSAGE(
                     context.user_data["user_mention"],
                     "modifying a status user",
-                    "modify\_status\_user"
+                    "/modify\_status\_user"
                 ),
-                reply_markup=inline_keyboards.go_to_private_chat_keyboard(),
+                reply_markup=inline_keyboards.go_to_private_chat_keyboard(
+                    context.bot.get_me().username,
+                    f"msu_{context.user_data['chat_id']}"
+                ),
                 parse_mode=ParseMode.MARKDOWN_V2
             )
         else:
