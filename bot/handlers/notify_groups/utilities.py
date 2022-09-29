@@ -167,7 +167,7 @@ def list_notify_groups(update, context):
         # chat
         msg = (
             "Listed below are all the notify groups for this group chat "
-            "(sorted alphabetically):\n\n"
+            "\(sorted alphabetically\):\n\n"
         )
     # msg += "`\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-`\n"
     for notify_group in notify_groups:

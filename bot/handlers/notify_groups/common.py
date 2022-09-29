@@ -55,7 +55,7 @@ def stringify_notify_group(bot: Bot, notify_group: dict):
         invited_str = "`None`"
 
     return (
-        f"`{notify_group_name}` _\(Created by {creator_mention}\)_\n"
+        f"*{notify_group_name}* _\(Created by {creator_mention}\)_\n"
         "__Group Description__\n"
         f"`{notify_group_description}`\n"
         "__Current Members__\n"
