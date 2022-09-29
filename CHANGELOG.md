@@ -19,6 +19,7 @@ name for the notify group.
 - Fixes the v0.1.0 link for CHANGELOG.md
 - Instead of setting the notify group names as pre-formatted, the bot will bold
 them when a notify group is to be stringized.
+- Turned the help message into a help menu
 ### Removed
 
 

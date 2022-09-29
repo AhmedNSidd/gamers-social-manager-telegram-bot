@@ -71,7 +71,6 @@ def register_nonconversation_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("start", handlers.basic.start,
                                           pass_args=True), 0)
     dispatcher.add_handler(CommandHandler("about", handlers.basic.about), 0)
-    dispatcher.add_handler(CommandHandler("help", handlers.basic.help), 0)
     dispatcher.add_handler(CommandHandler("f", handlers.basic.f), 0)
     dispatcher.add_handler(CommandHandler("mf", handlers.basic.mf), 0)
     dispatcher.add_handler(CommandHandler("age", handlers.basic.age), 0)
@@ -101,6 +100,68 @@ def register_nonconversation_commands(dispatcher):
 
 def register_conversation_commands(dispatcher):
     conversation_handlers = []
+    conversation_handlers.append(ConversationHandler(
+        entry_points=[
+            CommandHandler("help", handlers.basic.help_main_menu),
+            CallbackQueryHandler(
+                handlers.basic.help_main_menu,
+                pattern="^help_main_menu$"
+            )
+        ],
+        states={
+            handlers.basic.HELP_MENU: [
+                CallbackQueryHandler(
+                    handlers.basic.help_general,
+                    pattern="^general$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_notify_group_menu,
+                    pattern="^notify_group_menu$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_add_notify_group,
+                    pattern="^add_notify_group$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_modify_notify_group,
+                    pattern="^modify_notify_group$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_invite_to_notify_group,
+                    pattern="^invite_to_notify_group$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_list_notify_groups,
+                    pattern="^list_notify_groups$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_notify,
+                    pattern="^notify$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_status_user_menu,
+                    pattern="^status_user_menu$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_add_status_user,
+                    pattern="^add_status_user$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_modify_status_user,
+                    pattern="^modify_status_user$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_status,
+                    pattern="^status$"
+                ),
+            ]
+        },
+        fallbacks=[
+            MessageHandler(Filters.text, lambda u,c : None)
+        ],
+        allow_reentry=True,
+        per_user=False
+    ))
     conversation_handlers.append(ConversationHandler(
         entry_points=[
             CommandHandler(

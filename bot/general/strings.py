@@ -1,5 +1,119 @@
 # Below are the list of strings related to the Bot's UI
 
+
+HELP_GENERAL = lambda : (
+    "*General Commands*\n"
+    "/start — Starts the bot up\.\n"
+    "/about — Tells you a bit about the bot\.\n"
+    "/age — The bot will reply with how old the bot is\.\n"
+    "/help — The bot will send a menu containing help on all the commands "
+    "available to the user\.\n\n"
+    "/f — The bot will reply with a gif to help pay respect\.\n"
+    "/mf — The bot will reply with a sad\.\.\. sad\.\. voice note\.\n"
+)
+
+HELP_NOTIFY_GROUP = lambda : (
+    "Your Notify Groups are used to notify a group of people that you choose "
+    "\(with an optional message\) without having to constantly retype their "
+    "username tags\.\n\n"
+    "Choose an option below to learn more about a notify group command"
+)
+
+HELP_ADD_NOTIFY_GROUP = lambda : (
+    "*Usage:* `/add_notify_group`\n\n"
+    "\- You can use this command only in a group\n"
+    "\- After entry, the bot will contact you in private chat\n"
+    "\- The bot will ask you questions about the Notify Group that you want "
+    "to create\n"
+    "\- This Notify Group that you create will reside in the group chat you "
+    "originally entered the command in\n"
+)
+
+HELP_MODIFY_NOTIFY_GROUP = lambda : (
+    "*Usage:* `/modify_notify_group`\n\n"
+    "\- You can use this command only in a group\n"
+    "\- After entry, the bot will contact you in private chat\n"
+    "\- If you are admin of the group chat where you entered the command in, "
+    "you will be able to delete all the Notify Groups in the group chat\. "
+    "However, you will only be able to edit the Notify Groups that you "
+    "created\. You will NOT be able to edit the Notify Groups of others\n"
+    "\- If you are not an admin of the group chat where you entered the "
+    "command in, you will be able to edit/delete the Notify Groups that you "
+    "created"
+)
+
+HELP_INVITE_TO_NOTIFY_GROUP = lambda : (
+    "*Usage:* `/invite_to_notify_group name_of_notify_group @person_to_invite1"
+    " @person_to_invite2 ...`\n\n"
+    "\- You can use this command only in a group\n"
+    "\- After entry, you are able to revoke the invite you sent out\n"
+    "\- You will not be able to use this command for a Notify Group that you "
+    "did not create\n"
+)
+
+HELP_LIST_NOTIFY_GROUPS = lambda : (
+    "*Usage:* `/list_notify_groups`\n\tOR `/list_notify_groups "
+    "name_of_notify_group_1 name_of_notify_group_2 ...`\n\n"
+    "\- You can use this command only in a group\n"
+    "\- You can choose to provide arguments after the command or not\n"
+    "\- If you don't provide arguments, all notify groups in the group chat "
+    "will be listed\n"
+    "\- If you provide arguments, only the notify groups specified after the "
+    "the command will be listed\n"
+)
+
+HELP_NOTIFY = lambda : (
+    "*Usage:* `/notify name_of_notify_group`\n\tOR "
+    "`/notify name_of_notify_group the message to send`\n\n"
+    "\- You can use this command only in a group\n"
+    "\- You need to provide the name of the notify group after the command\n"
+    "\- You can choose to include an optional message which will be added to "
+    "the notification message\n"
+    "\- The creator of the Notify Group AND all members in a Notify Group are "
+    "able to use the notify command for their Notify Group\n"
+)
+
+HELP_STATUS_USER = lambda : (
+    "Your Status Users are a user that you create that can be used to show "
+    "your online status, what game you're playing, or when you were last "
+    "online\. You can connect your Xbox Gamertag and/or your PSN Online ID to "
+    "a Status User\. Status Users strictly exist in whatever chat you created "
+    "them, whether that is a group chat or a private chat\.\n\n"
+    "Choose an option below to learn more about the Status User commands"
+)
+
+HELP_ADD_STATUS_USER = lambda : (
+    "*Usage:* `/add_status_user`\n\n"
+    "\- You can use this command in both private chat and group chats\n"
+    "\- The Status User you create will reside in the group chat you "
+    "originally entered the command in, or in the private chat with the bot "
+    "if that's where you entered the command\n"
+    "\- After entry, the bot will contact you in private chat\n"
+    "\- The bot will ask you questions about the Status User you want to "
+    "create\n"
+)
+
+HELP_MODIFY_STATUS_USER = lambda : (
+    "*Usage:* `/modify_status_user`\n\n"
+    "\- You can use this command in both private chat and group chats\n"
+    "\- After entry, the bot will contact you in private chat\n"
+    "\- If you are admin of the group chat where you entered the command in, "
+    "you will be able to delete all the Status Users in the group chat\. "
+    "However, you will only be able to edit the Status Users that you "
+    "created\. You will NOT be able to edit the Status Users of others\n"
+    "\- If you are not an admin of the group chat where you entered the "
+    "command in, you will be able to edit/delete the Status Users that you "
+    "created"
+)
+
+HELP_STATUS = lambda : (
+    "*Usage:* `/status`\n\n"
+    "\- You can use this command in both private chat and group chats\n"
+    "\- This command will list all the Status Users connected to the chat "
+    "that the command was executed in\n"
+    "\- A Status User's Xbox Gamertag or PSN Online ID are always hidden\.\n"
+)
+
 # *********************************************************************
 # STATUS USER STRINGS
 # *********************************************************************
