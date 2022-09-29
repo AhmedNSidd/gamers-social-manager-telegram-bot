@@ -1,4 +1,5 @@
 import logging
+from general import inline_keyboards, strings
 
 from handlers.common import escape_text
 from general import values
@@ -13,6 +14,8 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+# Conversation state for the help menu 
+HELP_MENU = 0
 
 def start(update, context):
     """Send a message when the command /start is issued."""
@@ -62,10 +65,155 @@ def about(update, context):
         disable_web_page_preview=True
     )
 
-def help(update, context):
-    """Send a message when the command /help is issued."""
-    update.message.reply_text(values.help_message, parse_mode=ParseMode.MARKDOWN_V2)
 
+def help_main_menu(update, context):
+    """
+    Outputs the help main menu with buttons for: general, notify groups, and
+    status users
+    """
+    if update.callback_query:
+        update = update.callback_query
+        update.answer()
+        context.user_data["help_interface"].edit_text(
+            "Welcome to the help menu\! Choose an option below to learn more "
+            "about it",
+            reply_markup=inline_keyboards.main_menu_keyboard(),
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
+    else:
+        context.user_data["help_interface"] = update.message.reply_text(
+            "Welcome to the help menu\! Choose an option below to learn more "
+            "about it",
+            reply_markup=inline_keyboards.main_menu_keyboard(),
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
+    return HELP_MENU
+
+
+def help_general(update, context):
+    """Lists out the general commands for the help menu"""
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_GENERAL(),
+        reply_markup=inline_keyboards.go_back_to_main_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
+
+def help_notify_group_menu(update, context):
+    """
+    Outputs the help notify gropu main menu with buttons for: add notify group,
+    modify notify group, invite to notify group, list notify groups and notify
+    """
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_NOTIFY_GROUP(),
+        reply_markup=inline_keyboards.notify_group_main_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
+
+def help_add_notify_group(update, context):
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_ADD_NOTIFY_GROUP(),
+        reply_markup=inline_keyboards.go_back_to_notify_group_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
+
+def help_modify_notify_group(update, context):
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_MODIFY_NOTIFY_GROUP(),
+        reply_markup=inline_keyboards.go_back_to_notify_group_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
+
+def help_invite_to_notify_group(update, context):
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_INVITE_TO_NOTIFY_GROUP(),
+        reply_markup=inline_keyboards.go_back_to_notify_group_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
+
+def help_list_notify_groups(update, context):
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_LIST_NOTIFY_GROUPS(),
+        reply_markup=inline_keyboards.go_back_to_notify_group_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
+
+def help_notify(update, context):
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_NOTIFY(),
+        reply_markup=inline_keyboards.go_back_to_notify_group_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
+
+def help_status_user_menu(update, context):
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_STATUS_USER(),
+        reply_markup=inline_keyboards.status_user_main_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
+
+def help_add_status_user(update, context):
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_ADD_STATUS_USER(),
+        reply_markup=inline_keyboards.go_back_to_status_user_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
+
+def help_modify_status_user(update, context):
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_MODIFY_STATUS_USER(),
+        reply_markup=inline_keyboards.go_back_to_status_user_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
+
+def help_status(update, context):
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_STATUS(),
+        reply_markup=inline_keyboards.go_back_to_status_user_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
 
 def f(update, context):
     """Replies with a gif to pay respect."""
@@ -89,5 +237,4 @@ def age(update, context):
 
 def error(update, context):
     """Log Errors caused by Updates."""
-    print('Update "%s" caused error "%s"', update, context.error)
     logger.warning('Update "%s" caused error "%s"', update, context.error)
