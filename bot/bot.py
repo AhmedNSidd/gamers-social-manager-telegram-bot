@@ -285,6 +285,10 @@ def register_conversation_commands(dispatcher):
                     Filters.text & (~Filters.command),
                     handlers.notify_groups.creation.process_name
                 ),
+                CallbackQueryHandler(
+                    handlers.notify_groups.creation.process_name,
+                    pattern="^.*$"
+                )
             ],
             handlers.notify_groups.creation.TYPING_DESCRIPTION: [
                 MessageHandler(
@@ -331,17 +335,17 @@ def register_conversation_commands(dispatcher):
                 #                lambda u,c : handlers.status.MODIFYING_STATUS_USER)
             ],
             handlers.notify_groups.modification.EDITING_NOTIFY_GROUP_NAME: [
+                CallbackQueryHandler(
+                    handlers.notify_groups.modification.cancel,
+                    pattern="^cancel$"
+                ),
                 MessageHandler(
                     Filters.text & (~Filters.command),
                     handlers.notify_groups.modification.process_name
                 ),
                 CallbackQueryHandler(
                     handlers.notify_groups.modification.process_name,
-                    pattern="^skip_name$"
-                ),
-                CallbackQueryHandler(
-                    handlers.notify_groups.modification.cancel,
-                    pattern="^cancel$"
+                    pattern="^.*$"
                 ),
             ],
             handlers.notify_groups.modification.EDITING_NOTIFY_GROUP_DESCRIPTION: [
