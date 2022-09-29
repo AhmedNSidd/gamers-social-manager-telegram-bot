@@ -133,8 +133,14 @@ def start(update, context):
 
 
 def process_name(update, context):
-    context.user_data["messages_to_delete"].append(update.message)
-    name = update.message.text.strip()
+    if update.callback_query:
+        update = update.callback_query
+        name = update.data
+        update.answer()
+    else:
+        name = update.message.text.strip()
+        context.user_data["messages_to_delete"].append(update.message)
+
     chat_id = context.user_data.get("chat_id")
     keyboard = [[
         InlineKeyboardButton(
@@ -159,7 +165,14 @@ def process_name(update, context):
 
     # Send an error message if the name contains a space
     if ' ' in name:
-        alt_name = "\_".join(name.split(" "))
+        alt_name = "_".join(name.split(" "))
+        # Add the alternative name as a keyboard option
+        keyboard[0].append(
+            InlineKeyboardButton(
+                f"{values.STAR_EMOJI} USE ALTERNATIVE NAME",
+                callback_data=f"{alt_name}"
+            )
+        )
         context.user_data["messages_to_delete"].append(
             update.message.reply_text(
                 "You can not have a space in your notify group name\. Here's "

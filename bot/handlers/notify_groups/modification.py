@@ -305,7 +305,7 @@ def process_name(update, context):
 
     chat_id = context.user_data["chat_id"]
     user_id = context.user_data["user_id"]
-    group_name = context.user_data["group_name"]
+    escaped_group_name = escape_text(context.user_data["group_name"])
     notify_group_to_edit = context.user_data["notify_group_to_modify"]
 
     keyboard = [[
@@ -342,7 +342,15 @@ def process_name(update, context):
             ))
             return EDITING_NOTIFY_GROUP_NAME
         elif ' ' in new_notify_group_name:
-            alt_name = "\_".join(new_notify_group_name.split(" "))
+            alt_name = "_".join(new_notify_group_name.split(" "))
+            keyboard.append(
+                [
+                    InlineKeyboardButton(
+                        f"{values.STAR_EMOJI} USE ALTERNATIVE NAME",
+                        callback_data=f"{alt_name}"
+                    )
+                ]
+            )
             context.user_data["messages"].append(update.message.reply_text(
                 "You can not have a space in your notify group name\. Here's "
                 "an alternative notify group name that you can try instead: "
@@ -360,7 +368,8 @@ def process_name(update, context):
         if notify_groups_with_the_same_name > 0:
             context.user_data["messages"].append(update.message.reply_text(
                 "A notify group with that name already exists in the "
-                f"_{group_name}_ group chat\. Please enter a unique name",
+                f"_{escaped_group_name}_ group chat\. Please enter a unique "
+                "name",
                 reply_markup=InlineKeyboardButton(keyboard),
                 parse_mode=ParseMode.MARKDOWN_V2,
                 quote=True

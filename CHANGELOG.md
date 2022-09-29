@@ -13,6 +13,8 @@ unable to run a command before because the bot was blocked/not started
 command arguments to the /list_notify_groups command.
 - List notify groups alphabetically when notify groups are listed using the
 /list_notify_groups command.
+- Add a button to the add/modify notify group process to use the alternative
+name for the notify group.
 ### Changed
 - Fixes the v0.1.0 link for CHANGELOG.md
 - Instead of setting the notify group names as pre-formatted, the bot will bold
