@@ -86,7 +86,9 @@ def start(update, context):
                     user_mention,
                     "to add a notify group for this group chat"
                 ),
-                reply_markup=inline_keyboards.go_to_private_chat_keyboard(),
+                reply_markup=inline_keyboards.go_to_private_chat_keyboard(
+                    context.bot.get_me().username,
+                ),
                 parse_mode=ParseMode.MARKDOWN_V2
             )
         finally:
