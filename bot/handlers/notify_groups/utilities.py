@@ -1,3 +1,5 @@
+import re
+
 from telegram import ParseMode
 from telegram.error import BadRequest
 from general.db import DBConnection
@@ -41,7 +43,10 @@ def notify(update, context):
     # Get corresponding notify group from db
     notify_group = DBConnection().find_one(
         "notifygroups",
-        {"chat_id": chat_id, "name": notify_group_name}
+        {
+            "chat_id": chat_id,
+            "name": re.compile('^' + notify_group_name + '$', re.IGNORECASE)
+        }
     )
 
     # Send error message if notify group doesn't exist.
@@ -122,20 +127,21 @@ def list_notify_groups(update, context):
     if context.args:
         # Use the notify group names that are given as command arguments if
         # there are context.args
-        notify_groups_dictionary = {
-            notify_group["name"]: notify_group 
-            for notify_group in DBConnection().find(
-                "notifygroups",
-                {"chat_id": chat_id,
-                "name": {"$in": context.args}}
-            )
-        }
-
-        # Reorder the notify groups in the sequence given by the context.args
-        notify_groups = []
+        regex_string = "^"
         for arg in context.args:
-            if arg in notify_groups_dictionary:
-                notify_groups.append(notify_groups_dictionary[arg])
+            regex_string += f"{arg}|"
+        regex_string = regex_string[:-1] + "$"
+        compiled_regex = re.compile(regex_string, re.IGNORECASE)
+        notify_groups = sorted(
+            DBConnection().find(
+                "notifygroups",
+                {
+                    "chat_id": chat_id,
+                    "name": compiled_regex
+                }
+            ),
+            key=lambda notify_group: notify_group["name"]
+        )
     else:
         # Get all the notify groups connected to this group chat if there are
         # no context arguments
@@ -159,7 +165,7 @@ def list_notify_groups(update, context):
         # that not all the notify groups were returned for this group chat.
         msg = (
             "Listed below are the valid notify groups you requested for this "
-            "group chat:\n\n"
+            "group chat \(sorted alphabetically\):\n\n"
         )
     else:
         # If no notify groups were specified, let the user know we are
