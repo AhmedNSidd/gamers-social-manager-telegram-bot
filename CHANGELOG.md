@@ -15,6 +15,8 @@ command arguments to the /list_notify_groups command.
 /list_notify_groups command.
 - Add a button to the add/modify notify group process to use the alternative
 name for the notify group.
+- Adds autocomplete for commands, an about & description for the bot, as well
+as connects payments methods to the bot.
 ### Changed
 - Fixes the v0.1.0 link for CHANGELOG.md
 - Instead of setting the notify group names as pre-formatted, the bot will bold
