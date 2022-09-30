@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.0.0]
 ### Added
 - Add further instructions for user when they start the bot after they were
 unable to run a command before because the bot was blocked/not started
@@ -22,6 +23,7 @@ as connects payments methods to the bot.
 - Instead of setting the notify group names as pre-formatted, the bot will bold
 them when a notify group is to be stringized.
 - Turned the help message into a help menu
+- Allows Notify Group command arguments to be case-insensitive.
 ### Removed
 
 
@@ -57,4 +59,5 @@ the /modify_notify_group command in the invite to notify group flow
 
 
 [Unreleased]: https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/compare/main...develop
+[v1.0.0]: https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/releases/tag/v1.0.0
 [v0.1.0]: https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/releases/tag/v0.1.0
