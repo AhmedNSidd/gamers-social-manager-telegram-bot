@@ -1,8 +1,10 @@
+import re
+
 from telegram import ParseMode
 from telegram.error import BadRequest
-from telegram.utils.helpers import escape_markdown
 from general.db import DBConnection
-from handlers.common import get_one_mention, send_loud_and_silent_message
+from handlers.common import get_one_mention, send_loud_and_silent_message,\
+                            escape_text
 from handlers.notify_groups.common import stringify_notify_group
 
 
@@ -41,7 +43,10 @@ def notify(update, context):
     # Get corresponding notify group from db
     notify_group = DBConnection().find_one(
         "notifygroups",
-        {"chat_id": chat_id, "name": notify_group_name}
+        {
+            "chat_id": chat_id,
+            "name": re.compile('^' + notify_group_name + '$', re.IGNORECASE)
+        }
     )
 
     # Send error message if notify group doesn't exist.
@@ -68,7 +73,7 @@ def notify(update, context):
             "the members of it\. You can ask the creator of this notify group,"
             f" {notify_group_creator_mention}\. The creator can invite you "
             "using the following command:\n\n/invite\_to\_notify\_group "
-            f"{escape_markdown(notify_group['name'], 2)} {curr_user_mention}",
+            f"{escape_text(notify_group['name'])} {curr_user_mention}",
             chat_id,
             parse_mode=ParseMode.MARKDOWN_V2
         )
@@ -119,11 +124,32 @@ def list_notify_groups(update, context):
         )
         return
 
-    # Get all the notify groups connected to this group chat.
-    notify_groups = DBConnection().find(
-        "notifygroups",
-        {"chat_id": chat_id}
-    )
+    if context.args:
+        # Use the notify group names that are given as command arguments if
+        # there are context.args
+        regex_string = "^"
+        for arg in context.args:
+            regex_string += f"{arg}|"
+        regex_string = regex_string[:-1] + "$"
+        compiled_regex = re.compile(regex_string, re.IGNORECASE)
+        notify_groups = sorted(
+            DBConnection().find(
+                "notifygroups",
+                {
+                    "chat_id": chat_id,
+                    "name": compiled_regex
+                }
+            ),
+            key=lambda notify_group: notify_group["name"]
+        )
+    else:
+        # Get all the notify groups connected to this group chat if there are
+        # no context arguments
+        notify_groups = sorted(DBConnection().find(
+            "notifygroups",
+            {"chat_id": chat_id}
+        ), key=lambda notify_group: notify_group["name"])
+
     # Send an error message if no notify groups exist.
     if not notify_groups:
         update.message.reply_text(
@@ -134,9 +160,21 @@ def list_notify_groups(update, context):
 
     # Create a nicely formatted message with all the notify groups and send it
     # as a message.
-    msg = (
-        "Listed below are all the notify groups for this group chat:\n\n"
-    )
+    if context.args:
+        # If there were notify groups specified, then ensure the user knows
+        # that not all the notify groups were returned for this group chat.
+        msg = (
+            "Listed below are the valid notify groups you requested for this "
+            "group chat \(sorted alphabetically\):\n\n"
+        )
+    else:
+        # If no notify groups were specified, let the user know we are
+        # returning them all the notify groups found connected to this group
+        # chat
+        msg = (
+            "Listed below are all the notify groups for this group chat "
+            "\(sorted alphabetically\):\n\n"
+        )
     # msg += "`\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-`\n"
     for notify_group in notify_groups:
         msg += f"{stringify_notify_group(context.bot, notify_group)}\n\n"

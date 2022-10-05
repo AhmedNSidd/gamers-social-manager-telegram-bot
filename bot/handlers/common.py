@@ -60,7 +60,7 @@ def get_many_mentions(bot: Bot, chat_id: int, user_identifiers: list, separator=
     for invited_member_identifier in user_identifiers:
         if type(invited_member_identifier) == str:
             # The identifier is a username
-            escaped_username = escape_markdown(invited_member_identifier, 2)
+            escaped_username = escape_text(invited_member_identifier)
             user_mentions_str += f"{escaped_username}{separator}"
         else:
             # The identifier is a telegram ID
@@ -90,3 +90,6 @@ def send_loud_and_silent_message(bot: Bot, initial_text: str, final_text: str, c
     # Edit the loud message with the final text. If users are tagged here, they
     # will not be notified
     return message.edit_text(final_text, **msg_kwargs)
+
+def escape_text(text):
+    return escape_markdown(text, 2) if text else None

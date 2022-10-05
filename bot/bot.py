@@ -50,13 +50,12 @@ def main():
         is_db_local=args.localdb
     ))
 
-    # Setup the APIs
-    # ApisWrapper()
-
     # Start the Bot
     if args.localprod:
         updater.start_polling()
     else:
+        # Setup the APIs if we are running the bot on prod.
+        ApisWrapper()
         updater.start_webhook(listen="0.0.0.0", url_path=TOKEN,
                               webhook_url=f"https://gamersutilitybot.com/{TOKEN}")
 
@@ -68,9 +67,9 @@ def main():
 def register_nonconversation_commands(dispatcher):
     # Register all non-conversation handlers, keeping them in the same group.
     ## Register the non-conversation basic command handlers
-    dispatcher.add_handler(CommandHandler("start", handlers.basic.start), 0)
+    dispatcher.add_handler(CommandHandler("start", handlers.basic.start,
+                                          pass_args=True), 0)
     dispatcher.add_handler(CommandHandler("about", handlers.basic.about), 0)
-    dispatcher.add_handler(CommandHandler("help", handlers.basic.help), 0)
     dispatcher.add_handler(CommandHandler("f", handlers.basic.f), 0)
     dispatcher.add_handler(CommandHandler("mf", handlers.basic.mf), 0)
     dispatcher.add_handler(CommandHandler("age", handlers.basic.age), 0)
@@ -102,12 +101,74 @@ def register_conversation_commands(dispatcher):
     conversation_handlers = []
     conversation_handlers.append(ConversationHandler(
         entry_points=[
+            CommandHandler("help", handlers.basic.help_main_menu),
+            CallbackQueryHandler(
+                handlers.basic.help_main_menu,
+                pattern="^help_main_menu$"
+            )
+        ],
+        states={
+            handlers.basic.HELP_MENU: [
+                CallbackQueryHandler(
+                    handlers.basic.help_general,
+                    pattern="^general$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_notify_group_menu,
+                    pattern="^notify_group_menu$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_add_notify_group,
+                    pattern="^add_notify_group$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_modify_notify_group,
+                    pattern="^modify_notify_group$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_invite_to_notify_group,
+                    pattern="^invite_to_notify_group$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_list_notify_groups,
+                    pattern="^list_notify_groups$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_notify,
+                    pattern="^notify$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_status_user_menu,
+                    pattern="^status_user_menu$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_add_status_user,
+                    pattern="^add_status_user$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_modify_status_user,
+                    pattern="^modify_status_user$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_status,
+                    pattern="^status$"
+                ),
+            ]
+        },
+        fallbacks=[
+            MessageHandler(Filters.text, lambda u,c : None)
+        ],
+        allow_reentry=True,
+        per_user=False
+    ))
+    conversation_handlers.append(ConversationHandler(
+        entry_points=[
             CommandHandler(
                 "add_status_user", handlers.status.add_status_user.start
             ),
             CallbackQueryHandler(
                 handlers.status.add_status_user.start,
-                pattern="^add_status_user$"
+                pattern="^asu_[-]?[0-9]+$"
             )
         ],
         states={
@@ -145,8 +206,7 @@ def register_conversation_commands(dispatcher):
             ),
             MessageHandler(Filters.command, lambda u,c : handlers.common.cancel_current_conversation(u, c, "/add_status_user"))
         ],
-        allow_reentry=True,
-        per_chat=False
+        allow_reentry=True
     ))
 
     conversation_handlers.append(ConversationHandler(
@@ -159,6 +219,10 @@ def register_conversation_commands(dispatcher):
                 handlers.status.modify_status_user.start,
                 pattern="^modify_status_user$"
             ),
+            CallbackQueryHandler(
+                handlers.status.modify_status_user.start,
+                pattern="^msu_[-]?[0-9]+$"
+            )
         ],
         states={
             handlers.status.modify_status_user.MAIN_MENU: [
@@ -261,8 +325,7 @@ def register_conversation_commands(dispatcher):
         fallbacks=[
             MessageHandler(Filters.text, lambda u,c : None)
         ],
-        allow_reentry=True,
-        per_chat=False,
+        allow_reentry=True
     ))
 
     conversation_handlers.append(ConversationHandler(
@@ -270,6 +333,10 @@ def register_conversation_commands(dispatcher):
             CommandHandler(
                 "add_notify_group",
                 handlers.notify_groups.creation.start
+            ),
+            CallbackQueryHandler(
+                handlers.notify_groups.creation.start,
+                pattern="^ang_[-]?[0-9]+$"
             )
         ],
         states={
@@ -278,6 +345,10 @@ def register_conversation_commands(dispatcher):
                     Filters.text & (~Filters.command),
                     handlers.notify_groups.creation.process_name
                 ),
+                CallbackQueryHandler(
+                    handlers.notify_groups.creation.process_name,
+                    pattern="^.*$"
+                )
             ],
             handlers.notify_groups.creation.TYPING_DESCRIPTION: [
                 MessageHandler(
@@ -295,8 +366,7 @@ def register_conversation_commands(dispatcher):
                                  "^cancel$"),
             MessageHandler(Filters.command, lambda u,c : handlers.common.cancel_current_conversation(u, c, "/add_notify_group"))
         ],
-        allow_reentry=True,
-        per_chat=False,
+        allow_reentry=True
     ))
 
     conversation_handlers.append(ConversationHandler(
@@ -305,6 +375,10 @@ def register_conversation_commands(dispatcher):
                            handlers.notify_groups.modification.start),
             CallbackQueryHandler(handlers.notify_groups.modification.start,
                                  pattern="^modify_notify_group$"),
+            CallbackQueryHandler(
+                handlers.notify_groups.modification.start,
+                pattern="^mng_[-]?[0-9]+$"
+            )
         ],
         states={
             handlers.notify_groups.modification.MAIN_MENU: [
@@ -321,17 +395,17 @@ def register_conversation_commands(dispatcher):
                 #                lambda u,c : handlers.status.MODIFYING_STATUS_USER)
             ],
             handlers.notify_groups.modification.EDITING_NOTIFY_GROUP_NAME: [
+                CallbackQueryHandler(
+                    handlers.notify_groups.modification.cancel,
+                    pattern="^cancel$"
+                ),
                 MessageHandler(
                     Filters.text & (~Filters.command),
                     handlers.notify_groups.modification.process_name
                 ),
                 CallbackQueryHandler(
                     handlers.notify_groups.modification.process_name,
-                    pattern="^skip_name$"
-                ),
-                CallbackQueryHandler(
-                    handlers.notify_groups.modification.cancel,
-                    pattern="^cancel$"
+                    pattern="^.*$"
                 ),
             ],
             handlers.notify_groups.modification.EDITING_NOTIFY_GROUP_DESCRIPTION: [
@@ -375,8 +449,7 @@ def register_conversation_commands(dispatcher):
         fallbacks=[
             MessageHandler(Filters.text, lambda u,c : None)
         ],
-        allow_reentry=True,
-        per_chat=False,
+        allow_reentry=True
     ))
 
     conversation_handlers.append(ConversationHandler(

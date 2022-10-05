@@ -6,8 +6,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.0.0]
 ### Added
+- Add further instructions for user when they start the bot after they were
+unable to run a command before because the bot was blocked/not started
+- Add the ability to list specific notify groups if they are provided as
+command arguments to the /list_notify_groups command.
+- List notify groups alphabetically when notify groups are listed using the
+/list_notify_groups command.
+- Add a button to the add/modify notify group process to use the alternative
+name for the notify group.
+- Adds autocomplete for commands, an about & description for the bot, as well
+as connects payments methods to the bot.
 ### Changed
+- Fixes the v0.1.0 link for CHANGELOG.md
+- Instead of setting the notify group names as pre-formatted, the bot will bold
+them when a notify group is to be stringized.
+- Turned the help message into a help menu
+- Allows Notify Group command arguments to be case-insensitive.
+- Fix a typo in the /about command text
 ### Removed
 
 
@@ -43,4 +60,5 @@ the /modify_notify_group command in the invite to notify group flow
 
 
 [Unreleased]: https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/compare/main...develop
-[v0.1.0]: https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/compare/alpha-release...release-v0.1.0
+[v1.0.0]: https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/releases/tag/v1.0.0
+[v0.1.0]: https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/releases/tag/v0.1.0

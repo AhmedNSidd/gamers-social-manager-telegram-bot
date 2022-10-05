@@ -5,7 +5,7 @@ import os
 from semantic_version import Version
 
 
-BOT_VERSION = Version("0.1.0")
+BOT_VERSION = Version("1.0.0")
 
 
 help_message = """Here are the list of commands available to you:
@@ -57,11 +57,14 @@ UNLOCKED_EMOJI = u"\U0001F513"
 LOCKED_EMOJI = u"\U0001F512"
 MINUS_EMOJI = u"\U00002796"
 USER_EMOJI = u"\U0001F464"
+STAR_EMOJI = u"\U00002B50"
+BELL_EMOJI = u"\U0001F514"
+ENVELOPE_EMOJI = u"\U00002709"
+INFORMATION_DESK_PERSON_EMOJI = u"\U0001F481"
+NOTEPAD_EMOJI = u"\U0001F5D2"
 
 ADMIN_LIST = [247340182]
 
-BOT_USERNAME = "GamersUtilityBot"
-BOT_URL = f"https://t.me/{BOT_USERNAME}"
 TOKEN = os.environ.get("GUB_BOT_TOKEN")
 XBOX_CLIENT_SECRET_EXPIRY_DATE = datetime.datetime.strptime("Jun 16, 2024", "%b %d, %Y").date()
 

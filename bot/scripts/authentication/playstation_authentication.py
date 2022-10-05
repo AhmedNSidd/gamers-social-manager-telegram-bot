@@ -16,12 +16,12 @@ sys.path.append(pathlib.PurePath(pathlib.Path(__file__).parent.absolute(),
 
 from general.utils import import_root_dotenv_file
 from general.db import DBConnection
-from psnawp_api import authenticator
+from psnawp_api.core.authenticator import Authenticator as PSNAWPAuthenticator
 
 
 def validate_and_store_npsso(db: DBConnection, npsso: str):
     # This will raise errors if the npsso is invalid.
-    authenticator.Authenticator(npsso)
+    PSNAWPAuthenticator(npsso)
 
     credentials = db.find_one("credentials", {"platform": "psn"})    
     if credentials and credentials["npsso"] == npsso:
@@ -71,6 +71,7 @@ def main():
     ))
 
     validate_and_store_npsso(db, args.npsso)
+    db.__del__()
 
 
 if __name__ == "__main__":

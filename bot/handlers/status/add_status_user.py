@@ -1,9 +1,9 @@
 import asyncio
 
 from aiohttp import ClientResponseError
-from handlers.common import get_one_mention, send_loud_and_silent_message
+from handlers.common import get_one_mention, escape_text
 from external_handlers.apis_wrapper import ApisWrapper
-from general import values
+from general import strings, values, inline_keyboards
 from general.db import DBConnection
 from handlers.status.common import stringify_status_user
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
@@ -20,99 +20,109 @@ def start(update, context):
     Sends a private message to the user starting the add_status_user process
     and asking for their display name
     """
-    context.user_data["user_id"] = update.message.from_user.id
-    context.user_data["chat_id"] = update.message.chat.id
-    context.user_data["group_name"] = (
-        update.message.chat.title
-        if context.user_data["chat_id"] != context.user_data["user_id"]
-        else None
+    # Check if the conversation was started through a button
+    is_callback = False
+    if update.callback_query:
+        is_callback = True
+        update = update.callback_query
+        update.answer()
+        context.user_data["user_id"] = update.message.chat.id
+        callback_data_tokens = update.data.split("_")
+        group_chat_id = callback_data_tokens[1]
+        group_chat = context.bot.get_chat(group_chat_id)
+        context.user_data["chat_id"] = group_chat.id
+        context.user_data["group_name"] = group_chat.title
+    else:
+        context.user_data["user_id"] = update.message.from_user.id
+        context.user_data["chat_id"] = update.message.chat.id
+        context.user_data["group_name"] = (
+            update.message.chat.title
+            if context.user_data["chat_id"] != context.user_data["user_id"]
+            else None
+        )
+
+    # TODO: Maybe consider adding this to the user data
+    user_mention = get_one_mention(
+        context.bot, context.user_data["user_id"], context.user_data["chat_id"]
     )
+
+    # If the current conversation is happening in a group chat, send a button
+    # to the user in a private chat which will add a status user to the group
+    # chat, and end this conversation.
+    if not is_callback and context.user_data["group_name"]:
+        escaped_group_name = escape_text(context.user_data['group_name'])
+        try:
+            context.bot.send_message(
+                context.user_data["user_id"],
+                strings.CLICK_BUTTON_TO_START_PROCESS(
+                    f"adding a status user for the _{escaped_group_name}_ "
+                    "group chat"
+                ),
+                reply_markup=inline_keyboards.asu_start_keyboard(
+                    context.user_data["chat_id"]
+                ),
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        except Unauthorized:
+            # send a group message that the bot was unable to send a private
+            # message if there's an error
+            update.message.reply_text(
+                strings.BOT_UNABLE_TO_SEND_PRIVATE_MESSAGE(
+                    user_mention,
+                    "adding a status user",
+                    "/add\_status\_user"
+                ),
+                reply_markup=inline_keyboards.go_to_private_chat_keyboard(
+                    context.bot.get_me().username,
+                    f"asu_{context.user_data['chat_id']}"
+                ),
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        else:
+            # send a group message that the bot sent a private message to add
+            # a status user
+            update.message.reply_text(
+                strings.BOT_SENT_A_PRIVATE_MESSAGE(
+                    user_mention, "to add your status user for this group chat"
+                ),
+                reply_markup=inline_keyboards.go_to_private_chat_keyboard(
+                    context.bot.get_me().username,
+                ),
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        finally:
+            return ConversationHandler.END
+
+    # Set up the status user that we want to add
     context.user_data["status_user"] = {
         "user_id": context.user_data["user_id"],
         "chat_id": context.user_data["chat_id"],
         "group_name": context.user_data["group_name"]
     }
-    user_mention = get_one_mention(context.bot, context.user_data["user_id"],
-                                   context.user_data["chat_id"])
+
+    # Send the user prompt messages to start the process of adding a status
+    # user
+
     context.user_data["messages_to_delete"] = []
-    keyboard = [[
-        InlineKeyboardButton(
-            f"{values.CANCELLED_EMOJI} CANCEL",
-            callback_data=f"cancel"
-        ),
-    ]]
-    try:
-        context.user_data["messages_to_delete"].append(
-            send_loud_and_silent_message(
-                context.bot,
-                "Processing\.\.\.", 
-                f"Hey {user_mention}\!\n\nWe will add a status user to " + (
-                    f"the _{context.user_data['group_name']}_ group "
-                    if context.user_data.get("group_name") else
-                    "this private chat") +
-                "I will ask you for your display name/Xbox Live/PSN/Steam "
-                "IDs\. You can choose to add these to your status user, or "
-                "choose to skip if would prefer to not connect these services "
-                "to your status user\.\n\nYou can also choose to cancel the "
-                "process of adding this status user at any point during this "
-                "process",
-                context.user_data["user_id"],
-                parse_mode=ParseMode.MARKDOWN_V2
-            )
+    context.user_data["messages_to_delete"].append(
+        update.message.reply_text(
+            strings.ASU_INTRO(
+                user_mention,
+                escape_text(context.user_data["group_name"])
+            ),
+            parse_mode=ParseMode.MARKDOWN_V2,
+            reply_markup=inline_keyboards.cancel_keyboard()
         )
-        context.user_data["messages_to_delete"].append(
-            send_loud_and_silent_message(
-                context.bot,
-                "Processing\.\.\.",
-                "Enter the *display name* for the status user you want to add "
-                "to " + (
-                    f"the _{context.user_data['group_name']}_ group"
-                    if context.user_data.get("group_name") else
-                    "this private chat") +
-                "\n\nYou can not skip this entry",
-                context.user_data["user_id"],
-                parse_mode=ParseMode.MARKDOWN_V2,
-                reply_markup=InlineKeyboardMarkup(keyboard)
-            )
+    )
+    context.user_data["messages_to_delete"].append(
+        update.message.reply_text(
+            strings.ASU_ENTER_DISPLAY_NAME(
+                escape_text(context.user_data["group_name"])
+            ),
+            parse_mode=ParseMode.MARKDOWN_V2,
+            reply_markup=inline_keyboards.cancel_keyboard()
         )
-    except Unauthorized:
-        if context.user_data.get("group_name"):
-            # If process was started in a group, send a group message that the
-            # bot was unable to send a private message
-            keyboard = [[
-                InlineKeyboardButton(
-                    f"{values.RIGHT_POINTING_EMOJI} GO TO BOT CHAT TO START "
-                                                                        "BOT",
-                    url=f"{values.BOT_URL}"
-                ),
-            ]]
-            update.message.reply_text(
-                f"Hey {user_mention}\!\n\nThe bot was unable to send you a "
-                "private message regarding adding a status user because you "
-                "have to start the bot privately first\. Click on the button "
-                "below, start the bot, then try running `/add_status_user` in "
-                "this group again",
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode=ParseMode.MARKDOWN_V2
-            )
-            return ConversationHandler.END
-    else:
-        if context.user_data.get("group_name"):
-            # If process was started in a group, send a group message that the bot
-            # sent a private message
-            keyboard = [[
-                InlineKeyboardButton(
-                    f"{values.RIGHT_POINTING_EMOJI} GO TO PRIVATE CHAT",
-                    url=f"{values.BOT_URL}"
-                ),
-            ]]
-            update.message.reply_text(
-                f"Hey {user_mention}\!\n\nI have sent you a private message "
-                "which you can respond to to add your status user to this "
-                "group",
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode=ParseMode.MARKDOWN_V2
-            )
+    )
 
     return TYPING_DISPLAY_NAME
 
@@ -121,18 +131,17 @@ def process_display_name(update, context):
     display_name = update.message.text.strip()
     chat_id = context.user_data.get("chat_id")
     context.user_data["messages_to_delete"].append(update.message)
-    keyboard = [[
-        InlineKeyboardButton(
-            f"{values.CANCELLED_EMOJI} CANCEL",
-            callback_data=f"cancel"
-        ),
-    ]]
+
     if not display_name:
         # If the display name is empty, then send an error message.
-        context.user_data["messages_to_delete"].append(update.message.reply_text(
-            "You did not provide a valid display name\. Please enter a unique "
-            "display name", parse_mode=ParseMode.MARKDOWN_V2, quote=True
-        ))
+        context.user_data["messages_to_delete"].append(
+            update.message.reply_text(
+                strings.ASU_INVALID_DISPLAY_NAME(),
+                reply_markup=inline_keyboards.cancel_keyboard(),
+                parse_mode=ParseMode.MARKDOWN_V2,
+                quote=True
+            )
+        )
         return TYPING_DISPLAY_NAME
 
     # Check if an existing display name is present in the group/private chat.
@@ -141,43 +150,35 @@ def process_display_name(update, context):
         {"chat_id": chat_id, "display_name": display_name}
     )
     if users_with_the_same_name > 0:
-        context.user_data["messages_to_delete"].append(update.message.reply_text(
-            f"Somebody with that display name already exists in " +
-            (f"the _{context.user_data['group_name']}_ group"
-             if context.user_data.get("group_name") else
-             "this private chat") +
-            "'s status\. Please enter a unique display name",
-            parse_mode=ParseMode.MARKDOWN_V2,
-            quote=True
-        ))
+        context.user_data["messages_to_delete"].append(
+            update.message.reply_text(
+                strings.ASU_DUPLICATE_DISPLAY_NAME(
+                    escape_text(context.user_data["group_name"])
+                ),
+                reply_markup=inline_keyboards.cancel_keyboard(),
+                parse_mode=ParseMode.MARKDOWN_V2,
+                quote=True
+            )
+        )
         return TYPING_DISPLAY_NAME
 
     # if we've gotten here, it means the display name is unique.
     context.user_data["status_user"]["display_name"] = display_name
-    keyboard = [[
-        InlineKeyboardButton(
-            f"{values.CANCELLED_EMOJI} CANCEL",
-            callback_data=f"cancel"
-        ),
-        InlineKeyboardButton(
-            f"{values.NEXT_TRACK_EMOJI} SKIP THIS ENTRY",
-            callback_data=f"skip_xbox_gamertag"
-        )
-    ]]
+
     while len(context.user_data["messages_to_delete"]) > 1:
         old_message = context.user_data["messages_to_delete"].pop()
         old_message.delete()
 
     context.bot.send_message(
         context.user_data.get("user_id"),
-        f"Great\! Your display name has been set as `{display_name}`\n\n",
+        strings.ASU_DISPLAY_NAME_SUCCESS(display_name),
         parse_mode=ParseMode.MARKDOWN_V2
     )
 
     context.user_data["messages_to_delete"].append(context.bot.send_message(
         context.user_data.get("user_id"),
-        "Now enter your *Xbox Gamertag*",
-        reply_markup=InlineKeyboardMarkup(keyboard),
+        strings.ASU_XBOX_GAMERTAG_PROMPT(),
+        reply_markup=inline_keyboards.asu_xbox_gamertag_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
     ))
     return TYPING_XBOX_GAMERTAG
@@ -205,13 +206,14 @@ def process_xbox_gamertag(update, context):
         context.user_data["messages_to_delete"].append(update.message)
         xbox_gamertag = update.message.text.strip()
         if not xbox_gamertag:
-            context.user_data["messages_to_delete"].append(update.message.reply_text(
-                "You did not provide a valid Xbox Gamertag\. Please enter a "
-                "valid Xbox Gamertag",
-                parse_mode=ParseMode.MARKDOWN_V2,
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                quote=True
-            ))
+            context.user_data["messages_to_delete"].append(
+                update.message.reply_text(
+                    strings.ASU_INVALID_XBOX_GAMERTAG_ERROR(),
+                    parse_mode=ParseMode.MARKDOWN_V2,
+                    reply_markup=inline_keyboards.asu_xbox_gamertag_keyboard(),
+                    quote=True
+                )
+            )
             return TYPING_XBOX_GAMERTAG
 
     if is_callback and xbox_gamertag == "skip_xbox_gamertag":

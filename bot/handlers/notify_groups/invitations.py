@@ -1,3 +1,5 @@
+import re
+
 from telegram.ext import ConversationHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from general.db import DBConnection
@@ -51,7 +53,10 @@ def invite(update, context):
     # Get corresponding notify group from db
     notify_group = DBConnection().find_one(
         "notifygroups",
-        {"chat_id": chat_id, "name": notify_group_name}
+        {
+            "chat_id": chat_id,
+            "name": re.compile('^' + notify_group_name + '$', re.IGNORECASE)
+        }
     )
 
     # Cancel command if the notify group doesn't exist
