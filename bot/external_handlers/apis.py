@@ -2,12 +2,13 @@ import asyncio
 import datetime
 import humanize
 import json
-import psnawp_api
 import requests
 
 from general import values
 from general.db import DBConnection
 from models.player_presence import PlayerPresence
+from psnawp_api.psnawp import PSNAWP
+from psnawp_api.utils.endpoints import BASE_PATH
 from xbox.webapi.api.client import XboxLiveClient
 from xbox.webapi.api.provider.presence import PresenceLevel
 from xbox.webapi.authentication.manager import AuthenticationManager
@@ -28,7 +29,7 @@ class PsnApi:
         return it
 
     def init(self):
-        self.client = psnawp_api.psnawp.PSNAWP(self._get_psn_npsso())
+        self.client = PSNAWP(self._get_psn_npsso())
         self._check_credentials_expiry()
 
     def _get_psn_npsso(self):
@@ -40,7 +41,7 @@ class PsnApi:
         return credentials["npsso"]
 
     def _check_credentials_expiry(self):
-        days_to_expire = int(self.client.authenticator.oauth_token_response['refresh_token_expires_in']/86400)
+        days_to_expire = int(self.client._request_builder.authenticator._auth_properties["refresh_token_expires_in"]/86400)
         if days_to_expire <= 0:
             raise Exception("PSN credentials need to be renewed")
         if days_to_expire <= 7:
@@ -60,7 +61,7 @@ class PsnApi:
         with that online ID.
         """
         headers={  
-            "Authorization": f"Bearer {self.client.authenticator.obtain_fresh_access_token()}",
+            "Authorization": f"Bearer {self.client._request_builder.authenticator.obtain_fresh_access_token()}",
         }
         params={"fields": "accountId,onlineId,currentOnlineId"}
         url = f"https://us-prof.np.community.playstation.net/userProfile/v1/users/{psn_online_id}/profile2"
@@ -77,11 +78,11 @@ class PsnApi:
         """
         if not account_ids or not online_ids:
             return []
-        headers = {"Authorization": f"Bearer {self.client.authenticator.obtain_fresh_access_token()}"}
+        headers = {"Authorization": f"Bearer {self.client._request_builder.authenticator.obtain_fresh_access_token()}"}
         params = {"type": "primary"}
         tasks = []
         for i in range(len(account_ids)):
-            url = f"{psnawp_api.user.User.base_uri}/{account_ids[i]}/basicPresences" 
+            url = f"{BASE_PATH['profile_uri']}/{account_ids[i]}/basicPresences"
             tasks.append(asyncio.ensure_future(self._request_presence(
                                 session, url, headers, params, online_ids[i])))
         return await asyncio.gather(*tasks)

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.7.13-slim-buster
+FROM python:3.9.14-slim-buster
 WORKDIR /bot
 RUN apt-get update \
     && apt-get -y install libpq-dev gcc
