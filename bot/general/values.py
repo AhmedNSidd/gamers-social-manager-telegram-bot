@@ -5,7 +5,7 @@ import os
 from semantic_version import Version
 
 
-BOT_VERSION = Version("0.1.0")
+BOT_VERSION = Version("1.0.0")
 
 
 help_message = """Here are the list of commands available to you:

@@ -50,13 +50,12 @@ def main():
         is_db_local=args.localdb
     ))
 
-    # Setup the APIs
-    # ApisWrapper()
-
     # Start the Bot
     if args.localprod:
         updater.start_polling()
     else:
+        # Setup the APIs if we are running the bot on prod.
+        ApisWrapper()
         updater.start_webhook(listen="0.0.0.0", url_path=TOKEN,
                               webhook_url=f"https://gamersutilitybot.com/{TOKEN}")
 
