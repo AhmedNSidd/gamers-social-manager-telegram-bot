@@ -112,7 +112,7 @@ def start(update, context):
         context.bot.send_message(
             context.user_data["user_id"],
             f"Hey {update.message.from_user.first_name}\!\n\nWe will add "
-            f"a notify group to the _{context.user_data['group_name']}_ "
+            f"a notify group to the `{context.user_data['group_name']}` "
             "group\.\n\nI will ask you for the name and description for "
             "this group\.\n\nYou can choose to cancel the process of "
             "adding this notify group at any point during this process",
@@ -123,7 +123,7 @@ def start(update, context):
         context.bot.send_message(
             context.user_data["user_id"],
             "Enter the *name* for the notify group you want to add to the "
-            f"_{context.user_data['group_name']}_ group  e\.g\. "
+            f"`{context.user_data['group_name']}` group  e\.g\. "
             "_Weeknight\_Gamers_\n\n*Note* The name can NOT include "
             "spaces",
             parse_mode=ParseMode.MARKDOWN_V2,
@@ -197,7 +197,7 @@ def process_name(update, context):
         context.user_data["messages_to_delete"].append(
             update.message.reply_text(
                 "A notify group with that name already exists in the "
-                f"_{context.user_data['group_name']}_ group\. Please enter a "
+                f"`{context.user_data['group_name']}` group\. Please enter a "
                 "unique notify group name",
                 parse_mode=ParseMode.MARKDOWN_V2,
                 quote=True
@@ -233,7 +233,7 @@ def process_name(update, context):
         context.bot.send_message(
             context.user_data.get("user_id"),
             "Enter the **description** for the notify group you want to add "
-            f"to _{context.user_data['group_name']}_ group e\.g\. `This group "
+            f"to `{context.user_data['group_name']}` group e\.g\. `This group "
             "plays games every weeknight`",
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode=ParseMode.MARKDOWN_V2
