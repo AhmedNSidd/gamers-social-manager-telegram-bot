@@ -24,6 +24,7 @@ as connects payments methods to the bot.
 them when a notify group is to be stringized.
 - Turned the help message into a help menu
 - Allows Notify Group command arguments to be case-insensitive.
+- Fix a typo in the /about command text
 ### Removed
 
 

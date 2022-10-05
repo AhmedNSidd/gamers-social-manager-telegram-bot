@@ -52,7 +52,7 @@ def about(update, context):
         f"Gamers Utility Bot v{bot_version_escaped_str}\n"
         "_Created by [Ahmed Siddiqui](https://github.com/AhmedNSidd/)_\n\n"
         "This is a Telegram bot created to give gamers some helpful utilities,"
-        "making it easier to game with other users in group chats\. It does "
+        " making it easier to game with other users in group chats\. It does "
         "this through 2 main features:\n\n"
         f"{values.RIGHT_POINTING_EMOJI} The bot allows you to view the "
         "Online Status of gamers on Xbox Live & PSN through the Status Users "
