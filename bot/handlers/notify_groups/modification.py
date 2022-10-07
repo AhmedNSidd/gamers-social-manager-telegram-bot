@@ -255,11 +255,12 @@ def edit(update, context):
     user_id = context.user_data["user_id"]
     group_name = context.user_data['group_name']
     notify_group_to_edit = context.user_data["notify_group_to_modify"]
+    user_mention = context.user_data["user_mention"]
 
     update.message.delete()
     context.user_data["messages"] = [context.bot.send_message(
         user_id,
-        f"Hey {update.from_user.first_name}\! We will edit your notify group "
+        f"Hey {user_mention}\! We will edit your notify group "
         f"`{notify_group_to_edit['name']}`\n\nI will ask you to edit the "
         "group name, description, members in the notify group, and invites "
         "sent out for the notify group\. You can choose to skip if you would "
