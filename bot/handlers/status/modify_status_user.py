@@ -129,7 +129,7 @@ def start(update, context):
         if context.user_data["group_name"]:
             error_msg = (
                 "You have no status users to modify in the "
-                f"{context.user_data['group_name']} group\. Please add one "
+                f"`{context.user_data['group_name']}` group\. Please add one "
                 "first by entering `/add_status_user` in that group chat"
             )
         else:
@@ -160,7 +160,7 @@ def start(update, context):
 
         status_user_msg = (
             "Choose to modify either your or someone else's status user in "
-            f"the _{context.user_data.get('group_name')}_ group\."
+            f"the `{context.user_data.get('group_name')}` group\."
         )
     else:
         my_status_users = {}
