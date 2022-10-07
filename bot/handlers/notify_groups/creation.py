@@ -111,11 +111,11 @@ def start(update, context):
     context.user_data["messages_to_delete"].append(
         context.bot.send_message(
             context.user_data["user_id"],
-            f"Hey {update.message.from_user.first_name}\!\n\nWe will add "
-            f"a notify group to the _{context.user_data['group_name']}_ "
-            "group\.\n\nI will ask you for the name and description for "
-            "this group\.\n\nYou can choose to cancel the process of "
-            "adding this notify group at any point during this process",
+            f"Hey {user_mention}\!\n\nWe will add a notify group to the "
+            f"_{context.user_data['group_name']}_ group\.\n\nI will ask you "
+            "for the name and description for this group\.\n\nYou can choose "
+            "to cancel the process of adding this notify group at any point "
+            "during this process",
             parse_mode=ParseMode.MARKDOWN_V2
         )
     )
