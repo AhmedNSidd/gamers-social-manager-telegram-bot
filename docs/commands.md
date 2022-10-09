@@ -1,7 +1,7 @@
 # Overview
 
 This document goes over the list of commands offered by the bot, giving the
-requirements of each of these commands from a user perspective
+requirements of each of these commands from a user perspective.
 
 # Status Commands
 
