@@ -75,7 +75,37 @@ This command is used to setup the main command (/notify) by adding in the a user
 
 # Running The Bot
 
+This section outlines the steps required to get this project up and running on your local dev environment.
+
+## Prerequisites
+
+1. [Install Docker](https://docs.docker.com/get-docker/)
+2. [Install Docker Compose](https://docs.docker.com/compose/install/)
+
 ## Environment Variables
+
+For your local development environment setup, you will require a `.env` file. Create this file in the root directory of the project.
+Copy the contents of the `.env.example` file into this file, and populate the value for the `GUB_TESTING_BOT_TOKEN` key.
+
+### Generating a GUB_TESTING_BOT_TOKEN
+
+We will need an API token to access the [BotsAPI from telegram](https://core.telegram.org/bots/api). In order to generate one:
+
+1. Open the Telegram app using the desktop or web version
+2. In the search bar, type in `BotFather` and select the verified profile of BotFather
+3. Start the bot and issue the command `/newbot` in the chat to create a new testing bot
+4. Give your testing bot a name. Note: the bot name must end in `bot` (for example: TetrisBot or tetris_bot)
+5. Copy the Bot API token from the response message and paste it into the `.env` file
+
+## Spinning up your bot
+
+Once you have generated the API token and have setup your `.env` file, run the following command from the root directory of the project:
+```
+docker-compose up --build
+```
+This will install all required dependencies and get the app up and running.
+
+You can verify that it is running by visiting telegram, you will see the bot showing up there and you should be able to interact with it by issuing commands such as `/start` or `/about`.
 
 # Contributions / Open Source
 
