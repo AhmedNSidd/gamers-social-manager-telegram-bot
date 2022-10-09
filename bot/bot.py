@@ -73,6 +73,7 @@ def register_nonconversation_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("f", handlers.basic.f), 0)
     dispatcher.add_handler(CommandHandler("mf", handlers.basic.mf), 0)
     dispatcher.add_handler(CommandHandler("age", handlers.basic.age), 0)
+    dispatcher.add_handler(CommandHandler("diss", handlers.basic.diss), 0)
     dispatcher.add_error_handler(handlers.basic.error) # log all errors
 
     ## Register the non-conversation notify group command handlers

@@ -35,6 +35,17 @@ Status Commands \- Get status of players on Xbox Live and PSN\.
 /status \-\- Lists the status of all status users within a group chat or private chat
 """
 
+disses = [
+    "I'mmmmmmmmmmm sooorrryyyyyyyyy for your loss",
+    "It looks like your face caught on fire and someone tried to put it out with a fork",
+    "Why don't you go play a game that is better suited for your skills like ludo",
+    "Your gene pool could use a little chlorine",
+    "Why play so hard to get when you're already so hard to want",
+    "I could get on your level but I don't like being on my knees as much as you do",
+    "If you ran like your mouth you'd be in really good shape",
+    "What's the difference between you and eggs? Eggs get laid and you don't"
+]
+
 AGE = (humanize.naturaltime((datetime.datetime.now() - datetime.datetime(2021, 2, 8, 1, 1, 1)))).replace("ago", "old")
 
 SMILEY_EMOJI = u"\U0001F60A"

@@ -1,4 +1,5 @@
 import logging
+import random
 from general import inline_keyboards, strings
 
 from handlers.common import escape_text
@@ -65,6 +66,14 @@ def about(update, context):
         disable_web_page_preview=True
     )
 
+def diss(update, context):
+    """
+    Outputs a diss message targetting the user mentioned when the command was issued
+    """
+    targetted_user = update.message.text.split(" ", 1)[1]
+    msg = f"{values.RIGHT_POINTING_EMOJI} {targetted_user}, {random.choice(values.disses)} {values.LEFT_POINTING_EMOJI}"
+
+    update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN_V2)
 
 def help_main_menu(update, context):
     """
