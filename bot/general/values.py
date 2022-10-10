@@ -43,7 +43,11 @@ disses = [
     "Why play so hard to get when you're already so hard to want",
     "I could get on your level but I don't like being on my knees as much as you do",
     "If you ran like your mouth you'd be in really good shape",
-    "What's the difference between you and eggs? Eggs get laid and you don't"
+    "What's the difference between you and eggs? Eggs get laid and you don't",
+    "To be fair, you do have to have a very high IQ to meditate",
+    "The only thing falling faster than the GME stock are your grades",
+    "I don't watch tiktok. I'm not a virgin",
+    "The Great Way is not difficult for those who have no preferences. When love and hate are both absent, everything becomes clear and undisguised. Make the smallest distinction, however, and heaven and earth are set infinitely apart. If you wish to see the truth, then hold no opinions for, or against, anything"
 ]
 
 AGE = (humanize.naturaltime((datetime.datetime.now() - datetime.datetime(2021, 2, 8, 1, 1, 1)))).replace("ago", "old")
