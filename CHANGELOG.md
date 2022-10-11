@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Add option to display help main menu when running start
+- Added a command for the "What Did He Say???" TikTok Meme
+### Changed
+- Always show help instructions in private chat.
+### Removed
+
 
 ## [v1.0.0]
 ### Added

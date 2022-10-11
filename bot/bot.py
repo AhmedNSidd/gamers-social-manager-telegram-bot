@@ -3,6 +3,7 @@ This is a bot made for the Telegram Messenger application. The purpose of this
 bot is to connect gamers by allowing them to see other's online statuses, and
 notifying each other when it's time to play.
 """
+from distutils.cmd import Command
 import handlers
 import os
 
@@ -70,6 +71,7 @@ def register_nonconversation_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("about", handlers.basic.about), 0)
     dispatcher.add_handler(CommandHandler("f", handlers.basic.f), 0)
     dispatcher.add_handler(CommandHandler("mf", handlers.basic.mf), 0)
+    dispatcher.add_handler(CommandHandler("wdhs", handlers.basic.wdhs), 0)
     dispatcher.add_handler(CommandHandler("age", handlers.basic.age), 0)
     dispatcher.add_error_handler(handlers.basic.error) # log all errors
 
