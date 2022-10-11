@@ -4,6 +4,8 @@ from general import inline_keyboards, strings
 from handlers.common import escape_text
 from general import values
 from telegram import ParseMode
+from telegram.ext import ConversationHandler
+from telegram.utils.helpers import create_deep_linked_url
 
 
 # Enable logging
@@ -16,35 +18,6 @@ logger = logging.getLogger(__name__)
 
 # Conversation state for the help menu 
 HELP_MENU = 0
-
-def start(update, context):
-    """Send a message when the command /start is issued."""
-    update.message.reply_animation(
-        open(values.OBIWAN_HELLO_THERE_GIF_FILEPATH, "rb")
-    )
-
-    if context.args:
-        cmd_code, group_id = context.args[0].split("_")
-        group_chat = context.bot.get_chat(group_id)
-        group_title = group_chat.title
-        msg = (
-            "You've successfully started me up\! Now you can go back to the "
-            f"`{group_title}` group chat and run "
-        )
-        if cmd_code == "asu":
-            msg += "`/add_status_user`"
-        elif cmd_code == "msu":
-            msg += "`/modify_status_user`"
-        elif cmd_code == "ang":
-            msg += "`/add_notify_group`"
-        elif cmd_code == "mng":
-            msg += "`/modify_notify_group`"
-    else:
-        msg = ("You've successfully started me up\! Use /help to learn more "
-               f"about what I can do for you {values.SMILEY_EMOJI}")
-    
-    update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN_V2)
-
 
 def about(update, context):
     bot_version_escaped_str = escape_text(values.BOT_VERSION.__str__())
@@ -66,6 +39,67 @@ def about(update, context):
     )
 
 
+def start(update, context):
+    """Send a message when the command /start is issued."""
+    # 3 pathways from here:
+    # someone just ran /start
+    # someone ran start to add_status_user, etc.
+    # someone ran start to see the help menu
+
+    if not context.args:
+        update.message.reply_animation(
+            open(values.OBIWAN_HELLO_THERE_GIF_FILEPATH, "rb")
+        )
+        is_group = update.message.from_user.id != update.message.chat.id
+        if is_group:
+            url = create_deep_linked_url(context.bot.get_me().username, "help")
+            context.user_data["help_interface"] = update.message.reply_text(
+                "You've successfully started me up\! Use /help to learn more "
+                "about what I can do for you, or alternatively, just click on "
+                f"the button below {values.SMILEY_EMOJI}",
+                parse_mode=ParseMode.MARKDOWN_V2,
+                reply_markup=inline_keyboards.see_help_menu(url)
+            )
+        else:
+            context.user_data["help_interface"] = update.message.reply_text(
+                "You've successfully started me up\! Use /help to learn more "
+                "about what I can do for you, or alternatively, just click on "
+                f"the button below {values.SMILEY_EMOJI}",
+                parse_mode=ParseMode.MARKDOWN_V2,
+                reply_markup=inline_keyboards.see_help_menu(is_group)
+            )
+    else:
+        arg = context.args[0]
+        if arg == "help":
+            return help_main_menu(update, context)
+        else:
+            cmd_code, group_id = arg.split("_")
+            group_chat = context.bot.get_chat(group_id)
+            group_title = group_chat.title
+            update.message.reply_animation(
+                open(values.OBIWAN_HELLO_THERE_GIF_FILEPATH, "rb")
+            )
+            msg = (
+                "You've successfully started me up\! Now you can go back to the "
+                f"`{group_title}` group chat and run "
+            )
+            if cmd_code == "asu":
+                msg += "`/add_status_user`"
+            elif cmd_code == "msu":
+                msg += "`/modify_status_user`"
+            elif cmd_code == "ang":
+                msg += "`/add_notify_group`"
+            elif cmd_code == "mng":
+                msg += "`/modify_notify_group`"
+
+            update.message.reply_animation(
+                open(values.OBIWAN_HELLO_THERE_GIF_FILEPATH, "rb")
+            )
+            update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN_V2)
+
+    return HELP_MENU
+
+
 def help_main_menu(update, context):
     """
     Outputs the help main menu with buttons for: general, notify groups, and
@@ -81,6 +115,14 @@ def help_main_menu(update, context):
             parse_mode=ParseMode.MARKDOWN_V2
         )
     else:
+        if update.message.from_user.id != update.message.chat.id:
+            url = create_deep_linked_url(context.bot.get_me().username, "help")
+            update.message.reply_text(
+                f"[Commands Explanation]({url})",
+                parse_mode=ParseMode.MARKDOWN_V2,
+                disable_web_page_preview=True
+            )
+            return ConversationHandler.END
         context.user_data["help_interface"] = update.message.reply_text(
             "Welcome to the help menu\! Choose an option below to learn more "
             "about it",

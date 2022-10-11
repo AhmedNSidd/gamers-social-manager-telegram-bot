@@ -67,8 +67,6 @@ def main():
 def register_nonconversation_commands(dispatcher):
     # Register all non-conversation handlers, keeping them in the same group.
     ## Register the non-conversation basic command handlers
-    dispatcher.add_handler(CommandHandler("start", handlers.basic.start,
-                                          pass_args=True), 0)
     dispatcher.add_handler(CommandHandler("about", handlers.basic.about), 0)
     dispatcher.add_handler(CommandHandler("f", handlers.basic.f), 0)
     dispatcher.add_handler(CommandHandler("mf", handlers.basic.mf), 0)
@@ -101,6 +99,7 @@ def register_conversation_commands(dispatcher):
     conversation_handlers = []
     conversation_handlers.append(ConversationHandler(
         entry_points=[
+            CommandHandler("start", handlers.basic.start, pass_args=True),
             CommandHandler("help", handlers.basic.help_main_menu),
             CallbackQueryHandler(
                 handlers.basic.help_main_menu,
