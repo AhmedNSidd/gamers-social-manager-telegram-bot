@@ -91,10 +91,10 @@ Copy the contents of the `.env.example` file into this file, and populate the va
 
 We will need an API token to access the [BotsAPI from telegram](https://core.telegram.org/bots/api). In order to generate one:
 
-1. Open the Telegram app using the desktop or web version
-2. In the search bar, type in `BotFather` and select the verified profile of BotFather
-3. Start the bot and issue the command `/newbot` in the chat to create a new testing bot
-4. Give your testing bot a name. Note: the bot name must end in `bot` (for example: TetrisBot or tetris_bot)
+1. Open Telegram Messenger either via their [app](https://telegram.org/) (available on many different platforms) or through [web](https://web.telegram.org/k/) (Note you will need to sign up and create an account if you don't have one already)
+2. In the search bar, type in `@BotFather` and select the verified profile of `@BotFather`
+3. Start the bot and issue the command `/newbot` in the chat to create a new testing bot and follow the steps outlined by `@BotFather`
+4. Once you have finished creating your testing bot, `@BotFather` will provide you with the link that you can use to access your newly created bot, which will eventually run the GUB bot, and `@BotFather` will also provide the token which you can insert into the .env file
 5. Copy the Bot API token from the response message and paste it into the `.env` file
 
 ## Spinning up your bot
@@ -103,9 +103,11 @@ Once you have generated the API token and have setup your `.env` file, run the f
 ```
 docker-compose up --build
 ```
-This will install all required dependencies and get the app up and running.
+This will install all required dependencies, build all images, start up the containers and get the app up and running.
 
-You can verify that it is running by visiting telegram, you will see the bot showing up there and you should be able to interact with it by issuing commands such as `/start` or `/about`.
+Note: Once you have gotten the app built and running, it is not necessary to pass the `--build` option to the `docker-compose up` command to rebuild the project on subsequent runs. You can find more information about how `docker-compose` works [here](https://docs.docker.com/engine/reference/commandline/compose_up/).
+
+Use the link that `@BotFather` provides in order to access the bot. You can verify that it is running by visiting telegram, and you should be able to interact with it by issuing commands such as `/start` or `/about`.
 
 # Contributions / Open Source
 
