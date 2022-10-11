@@ -23,6 +23,10 @@ The bot can be found at https://t.me/GamersSocialManagerBot
 /mf -- The bot will reply with a sad... sad.. voice note.
 
 /age -- The bot will reply with how old the bot is.
+
+/about -- The bot will reply with general information about itself.
+
+/start -- Used to start up the bot.
 ```
 ## Notify Commands 
 ### Send a preset message while tagging preset users
