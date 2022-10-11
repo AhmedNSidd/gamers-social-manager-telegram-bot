@@ -6,6 +6,23 @@ from telegram.utils.helpers import create_deep_linked_url
 # GENERAL KEYBOARDS
 # *********************************************************************
 
+#### START KEYBOARDS
+
+def see_help_menu(url=None):
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                f"{values.LEDGER_EMOJI} SEE HELP MENU",
+                callback_data=f"help_main_menu"
+            )
+            if not url else
+            InlineKeyboardButton(
+                f"{values.LEDGER_EMOJI} SEE HELP MENU",
+                url=url
+            )
+        ],
+    ])
+
 #### HELP KEYBOARDS
 
 def main_menu_keyboard():
