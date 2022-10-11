@@ -270,6 +270,14 @@ def mf(update, context):
         open(values.MISSION_FAILED_AUDIO_FILEPATH, "rb")
     )
 
+
+def wdhs(update, context):
+    """Replies with the 'What did he say??' TikTok meme"""
+    update.message.reply_video(
+         open(values.WHAT_DID_HE_SAY_VIDEO_FILEPATH, "rb")
+    )
+
+
 def age(update, context):
     update.message.reply_text(
         "Didn't your mother ever teach you it's not polite to ask a bot its "
