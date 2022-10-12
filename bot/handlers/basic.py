@@ -432,7 +432,7 @@ def cancel_announcement(update, context):
     if update.from_user.id not in values.ADMIN_LIST:
         return
     context.user_data["confirmation_msg"].edit_text(
-        "Cancelled the announcment."
+        "Cancelled the announcement."
     )
     context.user_data.clear()
     return ConversationHandler.END
