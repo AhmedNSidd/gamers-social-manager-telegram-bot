@@ -87,6 +87,12 @@ def register_nonconversation_commands(dispatcher):
     dispatcher.add_handler(MessageHandler(
         Filters.successful_payment, handlers.basic.successful_payment_callback
     ))
+    dispatcher.add_handler(
+        CommandHandler("support", handlers.basic.support), 0
+    )
+    dispatcher.add_handler(
+        CommandHandler("feedback", handlers.basic.feedback), 0
+    )
     dispatcher.add_error_handler(handlers.basic.error) # log all errors
 
     ## Register the non-conversation notify group command handlers

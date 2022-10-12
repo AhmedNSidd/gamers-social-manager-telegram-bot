@@ -3,7 +3,7 @@ from general import inline_keyboards, strings
 
 from handlers.common import escape_text
 from general import values
-from telegram import ParseMode, LabeledPrice
+from telegram import Bot, ParseMode, LabeledPrice
 from telegram.ext import ConversationHandler
 from telegram.utils.helpers import create_deep_linked_url
 
@@ -330,12 +330,40 @@ def precheckout_callback(update, context):
 
 
 # finally, after contacting the payment provider...
-def successful_payment_callback(update, context) -> None:
+def successful_payment_callback(update, context):
     """Confirms the successful payment."""
     update.message.reply_text(
         strings.DONATION_THANK_YOU,
         parse_mode=ParseMode.MARKDOWN_V2
     )
+
+
+def support(update, context):
+    """
+    Replies with information about a support channel as well as how to
+    share feedback
+    """
+    update.message.reply_text(
+        strings.SUPPORT_INFORMATION,
+        parse_mode=ParseMode.MARKDOWN_V2,
+        disable_web_page_preview=True
+    )
+
+
+def feedback(update, context):
+    """Takes the user's feedback and sends them to the list of admins"""
+    if not context.args:
+        update.message.reply_text(
+            "You need to add feedback after the command\. For example:\n\n"
+            "`/feedback this bot SUXS!`\n\nAlthough maybe make the feedback "
+            f"more constructive than that {values.WINK_EMOJI}",
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
+        return
+    feedback = " ".join(context.args)
+    bot = Bot(values.FEEDBACK_TOKEN)
+    for admin_id in values.ADMIN_LIST:
+        bot.send_message(admin_id, f"*Feedback*:\n\n{feedback}")
 
 
 def error(update, context):
