@@ -163,6 +163,24 @@ def donation_options_keyboard():
         ],
     ])
 
+#### ANNOUNCEMENT KEYBOARDS
+
+def confirm_announcement_keyboard():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                f"{values.CROSS_EMOJI} CANCEL",
+                callback_data="cancel_announcement"
+            ),
+
+            InlineKeyboardButton(
+                f"{values.CHECKMARK_EMOJI} CONFIRM",
+                callback_data="confirm_announcement"
+            ),
+        ]
+    ])
+
+
 # *********************************************************************
 # COMMON KEYBOARDS
 # *********************************************************************
