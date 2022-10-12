@@ -93,6 +93,16 @@ def register_nonconversation_commands(dispatcher):
     dispatcher.add_handler(
         CommandHandler("feedback", handlers.basic.feedback), 0
     )
+    dispatcher.add_handler(
+        MessageHandler(
+            Filters.status_update.new_chat_members, handlers.basic.new_member
+        )
+    )
+    dispatcher.add_handler(
+        MessageHandler(
+            Filters.status_update.left_chat_member, handlers.basic.left_member
+        )
+    )
     dispatcher.add_error_handler(handlers.basic.error) # log all errors
 
     ## Register the non-conversation notify group command handlers
@@ -119,6 +129,26 @@ def register_nonconversation_commands(dispatcher):
 
 def register_conversation_commands(dispatcher):
     conversation_handlers = []
+    conversation_handlers.append(ConversationHandler(
+        entry_points=[
+            CommandHandler("announce", handlers.basic.announce)
+        ],
+        states={
+            handlers.basic.AWAITING_CONFIRMATION: [
+                CallbackQueryHandler(
+                    handlers.basic.confirm_announcement,
+                    pattern="^confirm_announcement$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.cancel_announcement,
+                    pattern="^cancel_announcement$"
+                )
+            ]
+        },
+        fallbacks=[
+            MessageHandler(Filters.text, lambda u,c : None)
+        ],
+    ))
     conversation_handlers.append(ConversationHandler(
         entry_points=[
             CommandHandler("start", handlers.basic.start, pass_args=True),

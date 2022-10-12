@@ -2,11 +2,11 @@ import logging
 from general import inline_keyboards, strings
 
 from handlers.common import escape_text
-from general import values
+from general import values, db
 from telegram import Bot, ParseMode, LabeledPrice
+from telegram.error import Unauthorized
 from telegram.ext import ConversationHandler
 from telegram.utils.helpers import create_deep_linked_url
-
 
 # Enable logging
 logging.basicConfig(
@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 # Conversation state for the help menu 
 HELP_MENU = 0
+
+# Conversation state for the announcement command
+AWAITING_CONFIRMATION = 0
 
 def about(update, context):
     bot_version_escaped_str = escape_text(values.BOT_VERSION.__str__())
@@ -45,6 +48,13 @@ def start(update, context):
     # someone just ran /start
     # someone ran start to add_status_user, etc.
     # someone ran start to see the help menu
+    if update.message.from_user.id == update.message.chat.id:
+        db.DBConnection().update_one(
+            "chats",
+            {"chat_id": update.message.chat.id},
+            {"$set": {"chat_id": update.message.chat.id}},
+            upsert=True
+        )
 
     if not context.args:
         update.message.reply_animation(
@@ -364,6 +374,88 @@ def feedback(update, context):
     bot = Bot(values.FEEDBACK_TOKEN)
     for admin_id in values.ADMIN_LIST:
         bot.send_message(admin_id, f"*Feedback*:\n\n{feedback}")
+
+
+def announce(update, context):
+    if update.message.from_user.id not in values.ADMIN_LIST:
+        return
+    
+    if not context.args:
+        update.message.reply_text(
+            "You need to provide an annoucement message in order to announce, "
+            "buddy."
+        )
+        return
+    
+    announcement = " ".join(context.args)
+    context.user_data["message"] = f"*ANNOUNCEMENT*\n\n{announcement}"
+    context.user_data["confirmation_msg"] = update.message.reply_text(
+        "Confirm the following announcement?\n\n"
+        f"{context.user_data['message']}",
+        reply_markup=inline_keyboards.confirm_announcement_keyboard(),
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+    return AWAITING_CONFIRMATION 
+
+
+def confirm_announcement(update, context):
+    update = update.callback_query
+    update.answer()
+    if update.from_user.id not in values.ADMIN_LIST:
+        return
+    all_chats = db.DBConnection().find("chats", {})
+    for chat in all_chats:
+        try:
+            context.bot.send_message(
+                chat["chat_id"],
+                context.user_data['message'],
+                parse_mode=ParseMode.MARKDOWN
+            )
+        except Unauthorized:
+            # We could remove the chats who have ended up blocking the bot..
+            # but I don't really see the use?
+            continue
+    
+    context.user_data["confirmation_msg"].edit_text(
+        f"Sent the following announcment to {len(all_chats)} chat(s):\n\n"
+        f"{context.user_data['message']}",
+        parse_mode=ParseMode.MARKDOWN
+    )
+    context.user_data.clear()
+    return ConversationHandler.END
+
+
+def cancel_announcement(update, context):
+    update = update.callback_query
+    update.answer()
+    if update.from_user.id not in values.ADMIN_LIST:
+        return
+    context.user_data["confirmation_msg"].edit_text(
+        "Cancelled the announcment."
+    )
+    context.user_data.clear()
+    return ConversationHandler.END
+
+
+def new_member(update, context):
+    for member in update.message.new_chat_members:
+        if member.username == context.bot.get_me().username:
+            db.DBConnection().update_one(
+                "chats",
+                {"chat_id": update.message.chat.id},
+                {"$set": {"chat_id": update.message.chat.id}},
+                upsert=True
+            )
+            return
+
+
+def left_member(update, context):
+    bot_username = context.bot.get_me().username
+    if update.message.left_chat_member["username"] == bot_username:
+        db.DBConnection().delete_one("chats", {
+            "chat_id": update.message.chat.id
+        })
 
 
 def error(update, context):
