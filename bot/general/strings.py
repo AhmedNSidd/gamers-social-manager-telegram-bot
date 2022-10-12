@@ -8,14 +8,9 @@ HELP_GENERAL = lambda : (
     "/start — Starts the bot up\.\n"
     "/about — Tells you a bit about the bot\.\n"
     "/age — The bot will reply with how old the bot is\.\n\n"
+)
 
-    "*Support*\n"
-    "/help — The bot will send a menu containing help on all the commands "
-    "available to the user\.\n"
-    "/support — The bot will give you details about how to recieve support "
-    "for the bot\n"
-    "/feedback — Used to submit feedback regarding the bot\n\n"
-
+HELP_MEMES = lambda : (
     "*Memes*\n"
     "/f — The \"Press F to Pay Respect\" GIF\.\n"
     "/mf — The \"Mission failed, we'll get 'em next time\" audio clip\n"
@@ -122,6 +117,21 @@ HELP_STATUS = lambda : (
     "\- This command will list all the Status Users connected to the chat "
     "that the command was executed in\n"
     "\- A Status User's Xbox Gamertag or PSN Online ID are always hidden\.\n"
+)
+
+HELP_SUPPORT = lambda : (
+    "*Support*\n"
+    "/help — The bot will send a menu containing help on all the commands "
+    "available to the user\.\n"
+    "/support — The bot will give you details about how to recieve support "
+    "for the bot\n"
+    "/feedback — Used to submit feedback regarding the bot\n\n"
+)
+
+HELP_DONATE = lambda : (
+    "*Donate*\n"
+    "/donate — The bot will send details on how you can donate to help "
+    "support GUB and its creator"
 )
 
 ## DONATION STRINGS
