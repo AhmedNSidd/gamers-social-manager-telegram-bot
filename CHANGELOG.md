@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Add option to display help main menu when running start
-- Added a command for the "What Did He Say???" TikTok Meme
+- Add a command for the "What Did He Say???" TikTok Meme
+- Add a command to allow user to donate to support the bot's creator
 ### Changed
 - Always show help instructions in private chat.
 ### Removed
