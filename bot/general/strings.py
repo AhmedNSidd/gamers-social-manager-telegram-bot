@@ -7,11 +7,19 @@ HELP_GENERAL = lambda : (
     "*General Commands*\n"
     "/start — Starts the bot up\.\n"
     "/about — Tells you a bit about the bot\.\n"
-    "/age — The bot will reply with how old the bot is\.\n"
+    "/age — The bot will reply with how old the bot is\.\n\n"
+
+    "*Support*\n"
     "/help — The bot will send a menu containing help on all the commands "
-    "available to the user\.\n\n"
-    "/f — The bot will reply with a gif to help pay respect\.\n"
-    "/mf — The bot will reply with a sad\.\.\. sad\.\. voice note\.\n"
+    "available to the user\.\n"
+    "/support — The bot will give you details about how to recieve support "
+    "for the bot\n"
+    "/feedback — Used to submit feedback regarding the bot\n\n"
+
+    "*Memes*\n"
+    "/f — The \"Press F to Pay Respect\" GIF\.\n"
+    "/mf — The \"Mission failed, we'll get 'em next time\" audio clip\n"
+    "/wdhs — The \"What did he say??\" TikTok video clip\n"
 )
 
 HELP_NOTIFY_GROUP = lambda : (
@@ -136,6 +144,19 @@ DONATION_DETAILS = (
 DONATION_THANK_YOU = (
     f"Thank you so much for donating {values.SMILEY_EMOJI} I hope you "
     "continue to enjoy using my services"
+)
+
+## SUPPORT STRING
+
+SUPPORT_INFORMATION = (
+    "If you're looking to share feedback or have found something wrong with "
+    "the bot, you can do either of the two things below:\n\n"
+    "1\. You can let the developers know by creating an 'issue' over at this "
+    "[link](https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/"
+    "issues)\n\n"
+    "2\. You can simply run `/feedback replace_this_with_your_feedback`"
+    "\n\nIf you're just looking for a support channel where you'll receive "
+    "announcements on the bot, you can join @GamersUtilityBotSupport"
 )
 
 # *********************************************************************

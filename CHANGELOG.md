@@ -6,11 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Add option to display help main menu when running start
-- Add a command for the "What Did He Say???" TikTok Meme
-- Add a command to allow user to donate to support the bot's creator
+- Add option to display help main menu when running /start
+- Add /wdhs command for the "What Did He Say???" TikTok Meme
+- Add /donate command to allow user to donate to support the bot's creator
+- Add /support command to give user details on a Telegram Support channel for
+GUB, as well as how they can post feedback through GitHub issues.
+- Add /feedback command so users can quickly share their feedback
 ### Changed
 - Always show help instructions in private chat.
+- Update the help command by adding descriptions of new commands, improve
+formatting for the general section, and improving existing command descriptions 
 ### Removed
 
 
