@@ -3,7 +3,7 @@ from general import inline_keyboards, strings
 
 from handlers.common import escape_text
 from general import values
-from telegram import ParseMode
+from telegram import ParseMode, LabeledPrice
 from telegram.ext import ConversationHandler
 from telegram.utils.helpers import create_deep_linked_url
 
@@ -284,6 +284,59 @@ def age(update, context):
         f"age? Anyway, I am {values.AGE} {values.SMILEY_EMOJI}",
         parse_mode=ParseMode.MARKDOWN_V2
     )
+
+
+def donate(update, context):
+    """
+    Returns with a bunch of information on how the user can donate to help
+    support the bot's maintenance 
+    """
+    update.message.reply_text(
+        strings.DONATION_DETAILS,
+        parse_mode=ParseMode.MARKDOWN_V2,
+        reply_markup=inline_keyboards.donation_options_keyboard()
+    )
+
+
+def donate_using_telegram(update, context):
+    """
+    Returns an invoice for donating to the bot directly through Telegram
+    """
+    context.bot.send_invoice(
+        update.callback_query.message.chat.id,
+        "Supporting Gamers' Utility Bot",
+        "The money you donate will be mainly used to pay for server & "
+        "maintenance costs",
+        "gub_maintenance_costs",
+        values.PAYMENT_TOKEN,
+        "CAD", 
+        [
+            LabeledPrice("Minimum Donation", 2 * 100)
+        ],
+        max_tip_amount=30 * 100,
+        suggested_tip_amounts=[1 * 100]
+    )
+
+
+def precheckout_callback(update, context):
+    """Answers the PreCheckoutQuery"""
+    query = update.pre_checkout_query
+    # check the payload, is this from your bot?
+    if query.invoice_payload != 'gub_maintenance_costs':
+        # answer False pre_checkout_query
+        query.answer(ok=False, error_message="Something went wrong...")
+    else:
+        query.answer(ok=True)
+
+
+# finally, after contacting the payment provider...
+def successful_payment_callback(update, context) -> None:
+    """Confirms the successful payment."""
+    update.message.reply_text(
+        strings.DONATION_THANK_YOU,
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+
 
 def error(update, context):
     """Log Errors caused by Updates."""

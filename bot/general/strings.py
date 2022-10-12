@@ -1,5 +1,7 @@
-# Below are the list of strings related to the Bot's UI
+from general import values
 
+
+# Below are the list of strings related to the Bot's UI
 
 HELP_GENERAL = lambda : (
     "*General Commands*\n"
@@ -112,6 +114,28 @@ HELP_STATUS = lambda : (
     "\- This command will list all the Status Users connected to the chat "
     "that the command was executed in\n"
     "\- A Status User's Xbox Gamertag or PSN Online ID are always hidden\.\n"
+)
+
+## DONATION STRINGS
+
+DONATION_DETAILS = (
+    "Pleased to hear you're thinking about donating\! Every month, the server "
+    "costs of running this bot totals to around $30 every month\. That cost "
+    "is mainly paid by my creator\. If you would like to support the "
+    "maintenance of this bot, you can donate using one of the 3 ways below\n\n"
+    "*GitHub*: 100\% of the proceeds go directly to my creator\. You can do a "
+    "one\-time donation, or pay $1, $3, or $5 every month \(your choice\)\n\n"
+    "*Telegram*: Roughly 3\% of your donation is taken by the payment provider"
+    " \(Stripe\)\n\n"
+    "*PayPal*: Roughly 3\% of your donation is taken by the payment provider "
+    "\(PayPal\)\n\n"
+    "All options are provided in the buttons below\. Thank you "
+    f"{values.SMILEY_EMOJI}"
+)
+
+DONATION_THANK_YOU = (
+    f"Thank you so much for donating {values.SMILEY_EMOJI} I hope you "
+    "continue to enjoy using my services"
 )
 
 # *********************************************************************

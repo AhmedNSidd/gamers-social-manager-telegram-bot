@@ -39,6 +39,7 @@ LEDGER_EMOJI = u"\U0001F4D2"
 ADMIN_LIST = [247340182]
 
 TOKEN = os.environ.get("GUB_BOT_TOKEN")
+PAYMENT_TOKEN = os.environ.get("GUB_PAYMENT_TOKEN")
 XBOX_CLIENT_SECRET_EXPIRY_DATE = datetime.datetime.strptime("Jun 16, 2024", "%b %d, %Y").date()
 
 OBIWAN_HELLO_THERE_GIF_FILEPATH = "media/obiwans-hello-there.mp4"

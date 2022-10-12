@@ -139,6 +139,30 @@ def go_back_to_status_user_menu_keyboard():
         ],
     ])
 
+#### DONATION KEYBOARDS
+
+def donation_options_keyboard():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                f"GitHub",
+                url=f"https://github.com/sponsors/AhmedNSidd/dashboard"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                f"Telegram",
+                callback_data=f"donate_using_telegram"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                f"PayPal",
+                url="https://paypal.me/GamersUtilityBot?country.x=CA&locale.x=en_US"
+            ),
+        ],
+    ])
+
 # *********************************************************************
 # COMMON KEYBOARDS
 # *********************************************************************
