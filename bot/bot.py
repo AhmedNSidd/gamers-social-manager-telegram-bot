@@ -165,6 +165,10 @@ def register_conversation_commands(dispatcher):
                     pattern="^general$"
                 ),
                 CallbackQueryHandler(
+                    handlers.basic.help_memes,
+                    pattern="^memes$"
+                ),
+                CallbackQueryHandler(
                     handlers.basic.help_notify_group_menu,
                     pattern="^notify_group_menu$"
                 ),
@@ -203,6 +207,14 @@ def register_conversation_commands(dispatcher):
                 CallbackQueryHandler(
                     handlers.basic.help_status,
                     pattern="^status$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_support,
+                    pattern="^support$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_donate,
+                    pattern="^donate$"
                 ),
             ]
         },

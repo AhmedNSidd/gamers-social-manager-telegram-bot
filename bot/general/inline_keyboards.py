@@ -32,6 +32,10 @@ def main_menu_keyboard():
                 f"{values.INFORMATION_DESK_PERSON_EMOJI} GENERAL",
                 callback_data=f"general"
             ),
+            InlineKeyboardButton(
+                f"{values.ZANY_EMOJI} MEMES",
+                callback_data="memes"
+            )
         ],
         [
             InlineKeyboardButton(
@@ -41,6 +45,16 @@ def main_menu_keyboard():
             InlineKeyboardButton(
                 f"{values.BELL_EMOJI} NOTIFY GROUPS",
                 callback_data=f"notify_group_menu"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                f"{values.QUESTION_MARK_EMOJI} SUPPORT",
+                callback_data="support"
+            ),
+            InlineKeyboardButton(
+                f"{values.MONEY_BAG_EMOJI} DONATE",
+                callback_data="donate"
             ),
         ]
     ])
@@ -57,6 +71,12 @@ def go_back_to_main_menu_keyboard():
 
 def notify_group_main_menu_keyboard():
     return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                f"{values.LEFT_POINTING_EMOJI} GO BACK",
+                callback_data=f"help_main_menu"
+            ),
+        ],
         [
             InlineKeyboardButton(
                 f"{values.PLUS_EMOJI} ADD NOTIFY GROUP",
@@ -83,12 +103,6 @@ def notify_group_main_menu_keyboard():
                 callback_data=f"notify"
             ),
         ],
-        [
-            InlineKeyboardButton(
-                f"{values.LEFT_POINTING_EMOJI} GO BACK",
-                callback_data=f"help_main_menu"
-            ),
-        ],
     ])
 
 def go_back_to_notify_group_menu_keyboard():
@@ -106,6 +120,12 @@ def status_user_main_menu_keyboard():
     return InlineKeyboardMarkup([
         [
             InlineKeyboardButton(
+                f"{values.LEFT_POINTING_EMOJI} GO BACK",
+                callback_data=f"help_main_menu"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
                 f"{values.PLUS_EMOJI} ADD STATUS USER",
                 callback_data=f"add_status_user"
             ),
@@ -118,12 +138,6 @@ def status_user_main_menu_keyboard():
             InlineKeyboardButton(
                 f"{values.ONLINE_EMOJI} DISPLAY STATUS",
                 callback_data=f"status"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                f"{values.LEFT_POINTING_EMOJI} GO BACK",
-                callback_data=f"help_main_menu"
             ),
         ],
     ])

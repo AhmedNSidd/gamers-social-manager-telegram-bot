@@ -154,6 +154,18 @@ def help_general(update, context):
     return HELP_MENU
 
 
+def help_memes(update, context):
+    """Lists out the memes commands in the help menu"""
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_MEMES(),
+        reply_markup=inline_keyboards.go_back_to_main_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
+
 def help_notify_group_menu(update, context):
     """
     Outputs the help notify gropu main menu with buttons for: add notify group,
@@ -266,6 +278,31 @@ def help_status(update, context):
         parse_mode=ParseMode.MARKDOWN_V2
     )
     return HELP_MENU
+
+
+def help_support(update, context):
+    """Lists out the support commands in the help menu"""
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_SUPPORT(),
+        reply_markup=inline_keyboards.go_back_to_main_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
+
+def help_donate(update, context):
+    """Lists out the donate commands in the help menu"""
+    update = update.callback_query
+    update.answer()
+    context.user_data["help_interface"].edit_text(
+        strings.HELP_DONATE(),
+        reply_markup=inline_keyboards.go_back_to_main_menu_keyboard(),
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
+    return HELP_MENU
+
 
 def f(update, context):
     """Replies with a gif to pay respect."""
