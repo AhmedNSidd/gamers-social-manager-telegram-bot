@@ -1,8 +1,8 @@
 import logging
-from general import inline_keyboards, strings
 
+from bson import ObjectId
 from handlers.common import escape_text
-from general import values, db
+from general import db, inline_keyboards, strings, values
 from telegram import Bot, ParseMode, LabeledPrice
 from telegram.error import Unauthorized
 from telegram.ext import ConversationHandler
@@ -60,24 +60,20 @@ def start(update, context):
         update.message.reply_animation(
             open(values.OBIWAN_HELLO_THERE_GIF_FILEPATH, "rb")
         )
-        is_group = update.message.from_user.id != update.message.chat.id
-        if is_group:
-            url = create_deep_linked_url(context.bot.get_me().username, "help")
-            context.user_data["help_interface"] = update.message.reply_text(
-                "You've successfully started me up\! Use /help to learn more "
-                "about what I can do for you, or alternatively, just click on "
-                f"the button below {values.SMILEY_EMOJI}",
-                parse_mode=ParseMode.MARKDOWN_V2,
-                reply_markup=inline_keyboards.see_help_menu(url)
+        msg = update.message.reply_text(
+            "You've successfully started me up\! Use /help to learn more "
+            "about what I can do for you, or alternatively, just click on "
+            f"the button below {values.SMILEY_EMOJI}",
+            parse_mode=ParseMode.MARKDOWN_V2,
+            reply_markup=inline_keyboards.see_help_menu(
+                None
+                if update.message.from_user.id == update.message.chat.id
+                else create_deep_linked_url(
+                    context.bot.get_me().username, "help"
+                )
             )
-        else:
-            context.user_data["help_interface"] = update.message.reply_text(
-                "You've successfully started me up\! Use /help to learn more "
-                "about what I can do for you, or alternatively, just click on "
-                f"the button below {values.SMILEY_EMOJI}",
-                parse_mode=ParseMode.MARKDOWN_V2,
-                reply_markup=inline_keyboards.see_help_menu(is_group)
-            )
+        )
+        context.user_data[f"help_interface_{msg.message_id}"] = msg
     else:
         arg = context.args[0]
         if arg == "help":
@@ -117,8 +113,9 @@ def help_main_menu(update, context):
     """
     if update.callback_query:
         update = update.callback_query
+        msg_id = update.message.message_id
         update.answer()
-        context.user_data["help_interface"].edit_text(
+        context.user_data[f"help_interface_{msg_id}"].edit_text(
             "Welcome to the help menu\! Choose an option below to learn more "
             "about it",
             reply_markup=inline_keyboards.main_menu_keyboard(),
@@ -133,20 +130,23 @@ def help_main_menu(update, context):
                 disable_web_page_preview=True
             )
             return ConversationHandler.END
-        context.user_data["help_interface"] = update.message.reply_text(
+
+        msg = update.message.reply_text(
             "Welcome to the help menu\! Choose an option below to learn more "
             "about it",
             reply_markup=inline_keyboards.main_menu_keyboard(),
             parse_mode=ParseMode.MARKDOWN_V2
         )
+        context.user_data[f"help_interface_{msg.message_id}"] = msg
     return HELP_MENU
 
 
 def help_general(update, context):
     """Lists out the general commands for the help menu"""
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_GENERAL(),
         reply_markup=inline_keyboards.go_back_to_main_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -157,8 +157,9 @@ def help_general(update, context):
 def help_memes(update, context):
     """Lists out the memes commands in the help menu"""
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_MEMES(),
         reply_markup=inline_keyboards.go_back_to_main_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -172,8 +173,9 @@ def help_notify_group_menu(update, context):
     modify notify group, invite to notify group, list notify groups and notify
     """
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_NOTIFY_GROUP(),
         reply_markup=inline_keyboards.notify_group_main_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -183,8 +185,9 @@ def help_notify_group_menu(update, context):
 
 def help_add_notify_group(update, context):
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_ADD_NOTIFY_GROUP(),
         reply_markup=inline_keyboards.go_back_to_notify_group_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -194,8 +197,9 @@ def help_add_notify_group(update, context):
 
 def help_modify_notify_group(update, context):
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_MODIFY_NOTIFY_GROUP(),
         reply_markup=inline_keyboards.go_back_to_notify_group_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -205,8 +209,9 @@ def help_modify_notify_group(update, context):
 
 def help_invite_to_notify_group(update, context):
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_INVITE_TO_NOTIFY_GROUP(),
         reply_markup=inline_keyboards.go_back_to_notify_group_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -216,8 +221,9 @@ def help_invite_to_notify_group(update, context):
 
 def help_list_notify_groups(update, context):
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_LIST_NOTIFY_GROUPS(),
         reply_markup=inline_keyboards.go_back_to_notify_group_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -227,8 +233,9 @@ def help_list_notify_groups(update, context):
 
 def help_notify(update, context):
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_NOTIFY(),
         reply_markup=inline_keyboards.go_back_to_notify_group_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -238,8 +245,9 @@ def help_notify(update, context):
 
 def help_status_user_menu(update, context):
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_STATUS_USER(),
         reply_markup=inline_keyboards.status_user_main_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -249,8 +257,9 @@ def help_status_user_menu(update, context):
 
 def help_add_status_user(update, context):
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_ADD_STATUS_USER(),
         reply_markup=inline_keyboards.go_back_to_status_user_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -260,8 +269,9 @@ def help_add_status_user(update, context):
 
 def help_modify_status_user(update, context):
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_MODIFY_STATUS_USER(),
         reply_markup=inline_keyboards.go_back_to_status_user_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -271,8 +281,9 @@ def help_modify_status_user(update, context):
 
 def help_status(update, context):
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_STATUS(),
         reply_markup=inline_keyboards.go_back_to_status_user_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -283,8 +294,9 @@ def help_status(update, context):
 def help_support(update, context):
     """Lists out the support commands in the help menu"""
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_SUPPORT(),
         reply_markup=inline_keyboards.go_back_to_main_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
@@ -295,8 +307,9 @@ def help_support(update, context):
 def help_donate(update, context):
     """Lists out the donate commands in the help menu"""
     update = update.callback_query
+    msg_id = update.message.message_id
     update.answer()
-    context.user_data["help_interface"].edit_text(
+    context.user_data[f"help_interface_{msg_id}"].edit_text(
         strings.HELP_DONATE(),
         reply_markup=inline_keyboards.go_back_to_main_menu_keyboard(),
         parse_mode=ParseMode.MARKDOWN_V2
