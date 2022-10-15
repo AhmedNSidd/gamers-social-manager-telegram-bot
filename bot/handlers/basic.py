@@ -70,10 +70,15 @@ def diss(update, context):
     """
     Outputs a diss message targetting the user mentioned when the command was issued
     """
-    targetted_user = update.message.text.split(" ", 1)[1]
-    msg = f"{values.RIGHT_POINTING_EMOJI} {targetted_user}, {random.choice(values.disses)} {values.LEFT_POINTING_EMOJI}"
+    input_string = update.message.text
 
-    update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN_V2)
+    if (input_string.count(' ') != 1):
+        update.message.reply_text("You have incorrectly invoked this command, call it as follows: /diss @username", parse_mode=ParseMode.MARKDOWN_V2)
+    else:
+        targetted_user = input_string.split(" ", 1)[1]
+        msg = f"{targetted_user} {random.choice(values.disses)}"
+
+        update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN_V2)
 
 def help_main_menu(update, context):
     """
