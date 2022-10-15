@@ -12,7 +12,8 @@ from external_handlers.apis_wrapper import ApisWrapper
 from general.db import DBConnection
 from general.values import TOKEN
 from telegram.ext import (Updater, CallbackQueryHandler, CommandHandler,
-                          ConversationHandler, Filters, MessageHandler)
+                          ConversationHandler, Filters, MessageHandler,
+                          PreCheckoutQueryHandler)
 
 
 def main():
@@ -67,13 +68,42 @@ def main():
 def register_nonconversation_commands(dispatcher):
     # Register all non-conversation handlers, keeping them in the same group.
     ## Register the non-conversation basic command handlers
-    dispatcher.add_handler(CommandHandler("start", handlers.basic.start,
-                                          pass_args=True), 0)
     dispatcher.add_handler(CommandHandler("about", handlers.basic.about), 0)
     dispatcher.add_handler(CommandHandler("f", handlers.basic.f), 0)
     dispatcher.add_handler(CommandHandler("mf", handlers.basic.mf), 0)
+    dispatcher.add_handler(CommandHandler("wdhs", handlers.basic.wdhs), 0)
     dispatcher.add_handler(CommandHandler("age", handlers.basic.age), 0)
     dispatcher.add_handler(CommandHandler("diss", handlers.basic.diss), 0)
+    dispatcher.add_handler(CommandHandler("donate", handlers.basic.donate), 0)
+    dispatcher.add_handler(
+        CallbackQueryHandler(
+            handlers.basic.donate_using_telegram,
+            pattern="^donate_using_telegram$"
+        ), 0
+    )
+    # Pre-checkout handler to final check
+    dispatcher.add_handler(PreCheckoutQueryHandler(
+        handlers.basic.precheckout_callback
+    ))
+    dispatcher.add_handler(MessageHandler(
+        Filters.successful_payment, handlers.basic.successful_payment_callback
+    ))
+    dispatcher.add_handler(
+        CommandHandler("support", handlers.basic.support), 0
+    )
+    dispatcher.add_handler(
+        CommandHandler("feedback", handlers.basic.feedback), 0
+    )
+    dispatcher.add_handler(
+        MessageHandler(
+            Filters.status_update.new_chat_members, handlers.basic.new_member
+        )
+    )
+    dispatcher.add_handler(
+        MessageHandler(
+            Filters.status_update.left_chat_member, handlers.basic.left_member
+        )
+    )
     dispatcher.add_error_handler(handlers.basic.error) # log all errors
 
     ## Register the non-conversation notify group command handlers
@@ -102,6 +132,27 @@ def register_conversation_commands(dispatcher):
     conversation_handlers = []
     conversation_handlers.append(ConversationHandler(
         entry_points=[
+            CommandHandler("announce", handlers.basic.announce)
+        ],
+        states={
+            handlers.basic.AWAITING_CONFIRMATION: [
+                CallbackQueryHandler(
+                    handlers.basic.confirm_announcement,
+                    pattern="^confirm_announcement$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.cancel_announcement,
+                    pattern="^cancel_announcement$"
+                )
+            ]
+        },
+        fallbacks=[
+            MessageHandler(Filters.text, lambda u,c : None)
+        ],
+    ))
+    conversation_handlers.append(ConversationHandler(
+        entry_points=[
+            CommandHandler("start", handlers.basic.start, pass_args=True),
             CommandHandler("help", handlers.basic.help_main_menu),
             CallbackQueryHandler(
                 handlers.basic.help_main_menu,
@@ -113,6 +164,10 @@ def register_conversation_commands(dispatcher):
                 CallbackQueryHandler(
                     handlers.basic.help_general,
                     pattern="^general$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_memes,
+                    pattern="^memes$"
                 ),
                 CallbackQueryHandler(
                     handlers.basic.help_notify_group_menu,
@@ -153,6 +208,14 @@ def register_conversation_commands(dispatcher):
                 CallbackQueryHandler(
                     handlers.basic.help_status,
                     pattern="^status$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_support,
+                    pattern="^support$"
+                ),
+                CallbackQueryHandler(
+                    handlers.basic.help_donate,
+                    pattern="^donate$"
                 ),
             ]
         },

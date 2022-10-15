@@ -5,6 +5,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Add option to display help main menu when running /start
+- Add /wdhs command for the "What Did He Say???" TikTok Meme
+- Add /donate command to allow user to donate to support the bot's creator
+- Add /support command to give user details on a Telegram Support channel for
+GUB, as well as how they can post feedback through GitHub issues.
+- Add /feedback command so users can quickly share their feedback
+- Add a feature so that important announcements can be made to all people &
+groups who are using the bot
+### Changed
+- Always show help instructions in private chat.
+- Update the help command by adding descriptions of new commands, improve
+formatting for the general section, and improving existing command descriptions 
+### Removed
+
 
 ## [v1.0.0]
 ### Added

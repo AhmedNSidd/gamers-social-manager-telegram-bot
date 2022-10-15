@@ -3,7 +3,21 @@ For our database, we will use mongodb as it is a technology that I was
 interested in learning.
 
 # Collections Schema
-We will have 3 collections: credentials, statususers, notifygroups
+We will have 4 collections: users, credentials, statususers, notifygroups
+
+## chats
+
+Each document in the chats collection signifies either a telegram user or a
+telegram chat that has used GUB. So when the bot is added to a group, it stores
+the chat id of that group. It also promptly deletes that group's chat id if
+the bot is removed.
+```
+{
+    '_id': <bson object id>,
+    'chat_id': <int>
+}
+```
+
 
 ## credentials
 

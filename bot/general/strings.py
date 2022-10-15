@@ -1,15 +1,20 @@
-# Below are the list of strings related to the Bot's UI
+from general import values
 
+
+# Below are the list of strings related to the Bot's UI
 
 HELP_GENERAL = lambda : (
     "*General Commands*\n"
     "/start — Starts the bot up\.\n"
     "/about — Tells you a bit about the bot\.\n"
-    "/age — The bot will reply with how old the bot is\.\n"
-    "/help — The bot will send a menu containing help on all the commands "
-    "available to the user\.\n\n"
-    "/f — The bot will reply with a gif to help pay respect\.\n"
-    "/mf — The bot will reply with a sad\.\.\. sad\.\. voice note\.\n"
+    "/age — The bot will reply with how old the bot is\.\n\n"
+)
+
+HELP_MEMES = lambda : (
+    "*Memes*\n"
+    "/f — The \"Press F to Pay Respect\" GIF\.\n"
+    "/mf — The \"Mission failed, we'll get 'em next time\" audio clip\n"
+    "/wdhs — The \"What did he say??\" TikTok video clip\n"
 )
 
 HELP_NOTIFY_GROUP = lambda : (
@@ -112,6 +117,56 @@ HELP_STATUS = lambda : (
     "\- This command will list all the Status Users connected to the chat "
     "that the command was executed in\n"
     "\- A Status User's Xbox Gamertag or PSN Online ID are always hidden\.\n"
+)
+
+HELP_SUPPORT = lambda : (
+    "*Support*\n"
+    "/help — The bot will send a menu containing help on all the commands "
+    "available to the user\.\n"
+    "/support — The bot will give you details about how to recieve support "
+    "for the bot\n"
+    "/feedback — Used to submit feedback regarding the bot\n\n"
+)
+
+HELP_DONATE = lambda : (
+    "*Donate*\n"
+    "/donate — The bot will send details on how you can donate to help "
+    "support GUB and its creator"
+)
+
+## DONATION STRINGS
+
+DONATION_DETAILS = (
+    "Pleased to hear you're thinking about donating\! Every month, the server "
+    "costs of running this bot totals to around $30 every month\. That cost "
+    "is mainly paid by my creator\. If you would like to support the "
+    "maintenance of this bot, you can donate using one of the 3 ways below\n\n"
+    "*GitHub*: 100\% of the proceeds go directly to my creator\. You can do a "
+    "one\-time donation, or pay $1, $3, or $5 every month \(your choice\)\n\n"
+    "*Telegram*: Roughly 3\% of your donation is taken by the payment provider"
+    " \(Stripe\)\n\n"
+    "*PayPal*: Roughly 3\% of your donation is taken by the payment provider "
+    "\(PayPal\)\n\n"
+    "All options are provided in the buttons below\. Thank you "
+    f"{values.SMILEY_EMOJI}"
+)
+
+DONATION_THANK_YOU = (
+    f"Thank you so much for donating {values.SMILEY_EMOJI} I hope you "
+    "continue to enjoy using my services"
+)
+
+## SUPPORT STRING
+
+SUPPORT_INFORMATION = (
+    "If you're looking to share feedback or have found something wrong with "
+    "the bot, you can do either of the two things below:\n\n"
+    "1\. You can let the developers know by creating an 'issue' over at this "
+    "[link](https://github.com/AhmedNSidd/gamers-social-manager-telegram-bot/"
+    "issues)\n\n"
+    "2\. You can simply run `/feedback replace_this_with_your_feedback`"
+    "\n\nIf you're just looking for a support channel where you'll receive "
+    "announcements on the bot, you can join @GamersUtilityBotSupport"
 )
 
 # *********************************************************************

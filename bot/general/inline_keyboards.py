@@ -6,6 +6,23 @@ from telegram.utils.helpers import create_deep_linked_url
 # GENERAL KEYBOARDS
 # *********************************************************************
 
+#### START KEYBOARDS
+
+def see_help_menu(url=None):
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                f"{values.LEDGER_EMOJI} SEE HELP MENU",
+                callback_data=f"help_main_menu"
+            )
+            if not url else
+            InlineKeyboardButton(
+                f"{values.LEDGER_EMOJI} SEE HELP MENU",
+                url=url
+            )
+        ],
+    ])
+
 #### HELP KEYBOARDS
 
 def main_menu_keyboard():
@@ -15,6 +32,10 @@ def main_menu_keyboard():
                 f"{values.INFORMATION_DESK_PERSON_EMOJI} GENERAL",
                 callback_data=f"general"
             ),
+            InlineKeyboardButton(
+                f"{values.ZANY_EMOJI} MEMES",
+                callback_data="memes"
+            )
         ],
         [
             InlineKeyboardButton(
@@ -24,6 +45,16 @@ def main_menu_keyboard():
             InlineKeyboardButton(
                 f"{values.BELL_EMOJI} NOTIFY GROUPS",
                 callback_data=f"notify_group_menu"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                f"{values.QUESTION_MARK_EMOJI} SUPPORT",
+                callback_data="support"
+            ),
+            InlineKeyboardButton(
+                f"{values.MONEY_BAG_EMOJI} DONATE",
+                callback_data="donate"
             ),
         ]
     ])
@@ -40,6 +71,12 @@ def go_back_to_main_menu_keyboard():
 
 def notify_group_main_menu_keyboard():
     return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                f"{values.LEFT_POINTING_EMOJI} GO BACK",
+                callback_data=f"help_main_menu"
+            ),
+        ],
         [
             InlineKeyboardButton(
                 f"{values.PLUS_EMOJI} ADD NOTIFY GROUP",
@@ -66,12 +103,6 @@ def notify_group_main_menu_keyboard():
                 callback_data=f"notify"
             ),
         ],
-        [
-            InlineKeyboardButton(
-                f"{values.LEFT_POINTING_EMOJI} GO BACK",
-                callback_data=f"help_main_menu"
-            ),
-        ],
     ])
 
 def go_back_to_notify_group_menu_keyboard():
@@ -89,6 +120,12 @@ def status_user_main_menu_keyboard():
     return InlineKeyboardMarkup([
         [
             InlineKeyboardButton(
+                f"{values.LEFT_POINTING_EMOJI} GO BACK",
+                callback_data=f"help_main_menu"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
                 f"{values.PLUS_EMOJI} ADD STATUS USER",
                 callback_data=f"add_status_user"
             ),
@@ -103,12 +140,6 @@ def status_user_main_menu_keyboard():
                 callback_data=f"status"
             ),
         ],
-        [
-            InlineKeyboardButton(
-                f"{values.LEFT_POINTING_EMOJI} GO BACK",
-                callback_data=f"help_main_menu"
-            ),
-        ],
     ])
 
 
@@ -121,6 +152,48 @@ def go_back_to_status_user_menu_keyboard():
             ),
         ],
     ])
+
+#### DONATION KEYBOARDS
+
+def donation_options_keyboard():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                f"GitHub",
+                url=f"https://github.com/sponsors/AhmedNSidd/dashboard"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                f"Telegram",
+                callback_data=f"donate_using_telegram"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                f"PayPal",
+                url="https://paypal.me/GamersUtilityBot?country.x=CA&locale.x=en_US"
+            ),
+        ],
+    ])
+
+#### ANNOUNCEMENT KEYBOARDS
+
+def confirm_announcement_keyboard():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                f"{values.CROSS_EMOJI} CANCEL",
+                callback_data="cancel_announcement"
+            ),
+
+            InlineKeyboardButton(
+                f"{values.CHECKMARK_EMOJI} CONFIRM",
+                callback_data="confirm_announcement"
+            ),
+        ]
+    ])
+
 
 # *********************************************************************
 # COMMON KEYBOARDS

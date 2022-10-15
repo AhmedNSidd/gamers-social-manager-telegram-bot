@@ -55,9 +55,9 @@ class DBConnection:
         collection = self.db[collection_name]
         return list(collection.find(query))
 
-    def update_one(self, collection_name, filter, update):
+    def update_one(self, collection_name, filter, update, **kwargs):
         collection = self.db[collection_name]
-        collection.update_one(filter, update)
+        collection.update_one(filter, update, **kwargs)
 
     def count_documents(self, collection_name, query):
         collection = self.db[collection_name]
