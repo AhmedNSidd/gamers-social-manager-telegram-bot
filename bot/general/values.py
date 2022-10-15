@@ -45,8 +45,7 @@ disses = [
     "If you ran like your mouth you'd be in really good shape",
     "What's the difference between you and eggs? Eggs get laid and you don't",
     "To be fair, you do have to have a very high IQ to meditate",
-    "The only thing falling faster than the GME stock are your grades",
-    "I don't watch tiktok. I'm not a virgin"
+    "The only thing falling faster than the GME stock are your grades"
 ]
 
 AGE = (humanize.naturaltime((datetime.datetime.now() - datetime.datetime(2021, 2, 8, 1, 1, 1)))).replace("ago", "old")
