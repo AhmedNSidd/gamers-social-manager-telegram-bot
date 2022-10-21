@@ -15,6 +15,7 @@ HELP_MEMES = lambda : (
     "/f — The \"Press F to Pay Respect\" GIF\.\n"
     "/mf — The \"Mission failed, we'll get 'em next time\" audio clip\n"
     "/wdhs — The \"What did he say??\" TikTok video clip\n"
+    "/diss \- The bot will issue a random diss to the mentioned user\n"
 )
 
 HELP_NOTIFY_GROUP = lambda : (
