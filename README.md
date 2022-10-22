@@ -27,6 +27,8 @@ The bot can be found at https://t.me/GamersSocialManagerBot
 /about -- The bot will reply with general information about itself.
 
 /start -- Used to start up the bot.
+
+/diss [username with or without @] -- Used to issue a random diss to the mentioned user.
 ```
 ## Notify Commands 
 ### Send a preset message while tagging preset users
